@@ -1,0 +1,25 @@
+<main>
+  <script>
+   $(function() {
+
+     const sse = new EventSource('/sse/listen');
+     sse.addEventListener('message', function(event) {
+       const data = JSON.parse(event.data);
+       $("#messages").append(`<li>${data.source} - ${data.message}</li>`);
+     });
+
+     $("#submit").click(async function() {
+       const text = $("#text").val();
+       const body = JSON.stringify({ message: text });
+       await $.post("/sse/broadcast", body);
+     });
+
+   });
+  </script>
+  <ul id="messages">
+  </ul>
+  <div>
+    <input type="text" id="text"></input>
+    <button id="submit">Send</button>
+  </div>
+</main>

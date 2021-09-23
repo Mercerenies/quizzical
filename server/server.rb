@@ -7,6 +7,8 @@ require 'securerandom'
 
 require_relative 'connections'
 require_relative 'sse_connection'
+require_relative 'uuid'
+require_relative 'sse_server'
 
 def root_dir
   $root_dir
@@ -18,6 +20,7 @@ end
 
 $root_dir = Pathname.new(__FILE__).dirname.dirname
 $connections = Connections.new
+$sse = SSEServer.new
 $active_request_data = {}
 
 enable :sessions
@@ -41,6 +44,10 @@ end
 
 get '/' do
   erb :index
+end
+
+get '/sse-test' do
+  erb :sse_test
 end
 
 get '/game' do
@@ -127,4 +134,37 @@ post '/response' do
   else
     status 400
   end
+end
+
+get '/sse/listen' do
+  uuid = UUID.get(session)
+  content_type 'text/event-stream'
+  SSEConnection.establish(self) do |conn|
+    $sse[uuid] = conn
+  end
+end
+
+post '/sse/send' do
+  request.body.rewind
+  body = JSON.parse(request.body.read)
+  target_uuid = body['target']
+  target_msg = body['message']
+  conn = $sse[target_uuid]
+  if conn
+    conn << { source: UUID.get(session), message: target_msg }
+    "OK"
+  else
+    status 400
+    "Unknown message target"
+  end
+end
+
+post '/sse/broadcast' do
+  request.body.rewind
+  body = JSON.parse(request.body.read)
+  target_msg = body['message']
+  $sse.each do |conn|
+    conn << { source: UUID.get(session), message: target_msg }
+  end
+  "OK"
 end
