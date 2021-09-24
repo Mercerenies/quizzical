@@ -1,17 +1,19 @@
 <main>
-  <script>
+  <script type="module">
+   import { SSE, BroadcastMessage } from '/sse.js';
+
    $(function() {
 
-     const sse = new EventSource('/sse/listen');
-     sse.addEventListener('message', function(event) {
-       const data = JSON.parse(event.data);
+     const sse = new SSE();
+
+     sse.addListener(function(data) {
        $("#messages").append(`<li>${data.source} - ${data.message}</li>`);
      });
 
      $("#submit").click(async function() {
        const text = $("#text").val();
-       const body = JSON.stringify({ message: text });
-       await $.post("/sse/broadcast", body);
+       const message = new BroadcastMessage(text);
+       await sse.sendMessage(message);
      });
 
    });
