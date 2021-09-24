@@ -1,56 +1,62 @@
-
-import { SSE, DirectMessage } from '/sse.js';
-import { RTC_CONFIG } from '/lobby.js';
-
-export async function setupNewGame() {
-  const newGameResult = await $.get('/listen');
-  const code = newGameResult.code;
-  $("#code").text(code);
-
-  window.gameSSE = SSE.get();
-  window.gameSSE.addListener(async function(message) {
-    const data = message.message;
-    switch (data.type) {
-    case 'sdp':
-      console.log("Got SDP offer");
-      let sdp = data.offer;
-
-      window.newRTC = new RTCPeerConnection(RTC_CONFIG);
-      window.newRTC.setRemoteDescription(sdp);
-      const answer = await window.newRTC.createAnswer();
-      await window.newRTC.setLocalDescription(answer);
-
-      const response = new DirectMessage(message.source, { answer: answer });
-      await window.gameSSE.sendMessage(response);
-
-      break;
-    }
-  });
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+import { SSE, DirectMessage } from './sse.js';
+import { RTC_CONFIG } from './lobby.js';
+export function setupNewGame() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const newGameResult = yield $.get('/listen');
+        const code = newGameResult.code;
+        $("#code").text(code);
+        const gameSSE = SSE.get();
+        gameSSE.addListener(function (message) {
+            return __awaiter(this, void 0, void 0, function* () {
+                const data = message.message;
+                switch (data.type) {
+                    case 'sdp':
+                        console.log("Got SDP offer");
+                        let sdp = data.offer;
+                        const newRTC = new RTCPeerConnection(RTC_CONFIG);
+                        newRTC.setRemoteDescription(sdp);
+                        const answer = yield newRTC.createAnswer();
+                        yield newRTC.setLocalDescription(answer);
+                        const response = new DirectMessage(message.source, { answer: answer });
+                        yield gameSSE.sendMessage(response);
+                        break;
+                }
+            });
+        });
+    });
 }
-
-export async function pingWithCode() {
-  const text = $("#code").val();
-  const result = await $.get(`/ping?code=${text}`);
-  console.log(result);
-
-  const peerConnection = new RTCPeerConnection(RTC_CONFIG);
-  window.clientSSE = SSE.get();
-  window.clientSSE.addListener(async function(message) {
-    const data = message.message;
-    console.log("Got SDP answer");
-    await peerConnection.setRemoteDescription(data.answer);
-  });
-  const offer = await peerConnection.createOffer();
-  await peerConnection.setLocalDescription(offer);
-
-  const response = new DirectMessage(result.target, { type: 'sdp', offer: offer });
-  await window.clientSSE.sendMessage(response);
+export function pingWithCode() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const text = $("#code").val();
+        const result = yield $.get(`/ping?code=${text}`);
+        console.log(result);
+        const peerConnection = new RTCPeerConnection(RTC_CONFIG);
+        const clientSSE = SSE.get();
+        clientSSE.addListener(function (message) {
+            return __awaiter(this, void 0, void 0, function* () {
+                const data = message.message;
+                console.log("Got SDP answer");
+                yield peerConnection.setRemoteDescription(data.answer);
+            });
+        });
+        const offer = yield peerConnection.createOffer();
+        yield peerConnection.setLocalDescription(offer);
+        const response = new DirectMessage(result.target, { type: 'sdp', offer: offer });
+        yield clientSSE.sendMessage(response);
+    });
 }
-
 export function setupConnectPage() {
-  $("#submit").click(pingWithCode);
+    $("#submit").click(pingWithCode);
 }
-
-$(function() {
-  console.log("Ready!");
-})
+$(function () {
+    console.log("Ready!");
+});
