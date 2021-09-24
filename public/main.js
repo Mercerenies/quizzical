@@ -1,7 +1,6 @@
 
 import { SSE, DirectMessage } from '/sse.js';
-
-export const RTC_CONFIG = {'iceServers': [{'urls': 'stun:stun.l.google.com:19302'}]}
+import { RTC_CONFIG } from '/lobby.js';
 
 export async function setupNewGame() {
   const newGameResult = await $.get('/listen');
