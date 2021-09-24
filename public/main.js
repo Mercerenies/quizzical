@@ -7,7 +7,7 @@ export async function setupNewGame() {
   const code = newGameResult.code;
   $("#code").text(code);
 
-  window.gameSSE = new SSE();
+  window.gameSSE = SSE.get();
   window.gameSSE.addListener(async function(message) {
     const data = message.message;
     switch (data.type) {
@@ -34,7 +34,7 @@ export async function pingWithCode() {
   console.log(result);
 
   const peerConnection = new RTCPeerConnection(RTC_CONFIG);
-  window.clientSSE = new SSE();
+  window.clientSSE = SSE.get();
   window.clientSSE.addListener(async function(message) {
     const data = message.message;
     console.log("Got SDP answer");

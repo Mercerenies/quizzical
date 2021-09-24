@@ -1,4 +1,6 @@
 
+let _sseSingleton = null;
+
 export class SSE {
 
   constructor() {
@@ -21,6 +23,13 @@ export class SSE {
   async sendMessage(message) {
     const target = message.postTarget();
     await $.post(target, JSON.stringify(message));
+  }
+
+  static get() {
+    if (!_sseSingleton) {
+      _sseSingleton = new SSE();
+    }
+    return _sseSingleton;
   }
 
 }
