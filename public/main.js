@@ -1,7 +1,7 @@
 
-const RTC_CONFIG = {'iceServers': [{'urls': 'stun:stun.l.google.com:19302'}]}
+export const RTC_CONFIG = {'iceServers': [{'urls': 'stun:stun.l.google.com:19302'}]}
 
-function setupNewGame() {
+export function setupNewGame() {
   window.gameSSE = new EventSource('/listen');
   window.gameSSE.addEventListener('message', async function(event) {
     const data = JSON.parse(event.data);
@@ -27,7 +27,7 @@ function setupNewGame() {
   });
 }
 
-async function pingWithCode() {
+export async function pingWithCode() {
   const text = $("#code").val();
   const result = await $.get(`/ping?code=${text}`);
   console.log(result);
@@ -44,7 +44,7 @@ async function pingWithCode() {
   await $.post('/offer', JSON.stringify(offer));
 }
 
-function setupConnectPage() {
+export function setupConnectPage() {
   $("#submit").click(pingWithCode);
 }
 
