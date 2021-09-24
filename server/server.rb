@@ -5,10 +5,10 @@ require 'pathname'
 require 'json'
 require 'securerandom'
 
-require_relative 'connections'
 require_relative 'sse_connection'
 require_relative 'uuid'
 require_relative 'sse_server'
+require_relative 'lobby_manager'
 
 def root_dir
   $root_dir
@@ -19,9 +19,8 @@ def db_dir
 end
 
 $root_dir = Pathname.new(__FILE__).dirname.dirname
-$connections = Connections.new
 $sse = SSEServer.new
-$active_request_data = {}
+$lobbies = LobbyManager.new
 
 enable :sessions
 set :session_store, Rack::Session::Pool
@@ -60,7 +59,7 @@ end
 
 get '/listen' do
   content_type 'application/json'
-  code = $connections.listen(UUID.get(session))
+  code = $lobbies.start_new_lobby(UUID.get(session))
   { type: 'code', code: code }.to_json
 end
 
@@ -68,7 +67,7 @@ get '/ping' do
   content_type 'application/json'
   if params['code']
     code = params['code']
-    target = $connections[code]
+    target = $lobbies[code]
     if target
       { 'result': 'ok', 'target': target }.to_json
     else
