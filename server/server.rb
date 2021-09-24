@@ -59,31 +59,18 @@ get '/connect' do
 end
 
 get '/listen' do
-  content_type 'text/event-stream'
-  SSEConnection.establish(self) do |conn|
-    code = $connections.listen(conn)
-
-    initial_msg = { type: 'code', code: code }
-    conn << initial_msg
-
-  end
+  content_type 'application/json'
+  code = $connections.listen(UUID.get(session))
+  { type: 'code', code: code }.to_json
 end
 
 get '/ping' do
   content_type 'application/json'
   if params['code']
     code = params['code']
-    conn = $connections[code]
-    if conn
-      request_uuid = SecureRandom.uuid
-      session['request_uuid'] = request_uuid
-      session['request_code'] = code
-      $active_request_data[request_uuid] = :waiting
-
-      msg = { type: 'message', message: "Ping from #{request.ip} at #{request_uuid}" }
-      conn << msg
-
-      { 'result': 'ok' }.to_json
+    target = $connections[code]
+    if target
+      { 'result': 'ok', 'target': target }.to_json
     else
       status 400
       { 'result': 'invalid-code' }.to_json
@@ -91,48 +78,6 @@ get '/ping' do
   else
     status 400
     { 'result': 'invalid-request' }.to_json
-  end
-end
-
-get '/await' do
-  request_uuid = session['request_uuid']
-  req = $active_request_data[request_uuid]
-  if req == :waiting
-    content_type 'text/event-stream'
-    SSEConnection.establish(self) do |conn|
-      $active_request_data[request_uuid] = conn
-    end
-  else
-    # No such UUID, so bad request
-    status 400
-  end
-end
-
-post '/offer' do
-  request_uuid = session['request_uuid']
-  req = $active_request_data[request_uuid]
-  code = session['request_code']
-  if req.is_a?(SSEConnection)
-    request.body.rewind
-    sdp = request.body.read
-    server = $connections[code]
-    server << { type: 'sdp', sdp: sdp, request_uuid: request_uuid }
-    'OK'
-  else
-    status 400
-  end
-end
-
-post '/response' do
-  request.body.rewind
-  body = JSON.parse(request.body.read)
-  request_uuid = body['uuid']
-  answer = body['answer']
-  req = $active_request_data[request_uuid]
-  if req.is_a?(SSEConnection)
-    req << { type: 'sdp', answer: answer };
-  else
-    status 400
   end
 end
 

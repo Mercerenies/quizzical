@@ -1,6 +1,7 @@
 
 require_relative 'codes'
 
+# TODO This needs to have expiry date on things
 class Connections
 
   def initialize
@@ -16,14 +17,9 @@ class Connections
   end
 
   def listen(conn)
-    purge!
     Codes::generate(self).tap do |code|
       @data[code] = conn
     end
-  end
-
-  def purge!
-    @data.reject! { |k, v| v.closed? }
   end
 
 end

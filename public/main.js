@@ -1,26 +1,28 @@
 
+import { SSE, DirectMessage } from '/sse.js';
+
 export const RTC_CONFIG = {'iceServers': [{'urls': 'stun:stun.l.google.com:19302'}]}
 
-export function setupNewGame() {
-  window.gameSSE = new EventSource('/listen');
-  window.gameSSE.addEventListener('message', async function(event) {
-    const data = JSON.parse(event.data);
+export async function setupNewGame() {
+  const newGameResult = await $.get('/listen');
+  const code = newGameResult.code;
+  $("#code").text(code);
+
+  window.gameSSE = new SSE();
+  window.gameSSE.addListener(async function(message) {
+    const data = message.message;
     switch (data.type) {
-    case 'code':
-      $("#code").text(data.code);
-      break;
-    case 'message':
-      console.log(data.message);
-      break;
     case 'sdp':
       console.log("Got SDP offer");
-      let sdp = JSON.parse(data.sdp);
+      let sdp = data.offer;
 
       window.newRTC = new RTCPeerConnection(RTC_CONFIG);
       window.newRTC.setRemoteDescription(sdp);
       const answer = await window.newRTC.createAnswer();
       await window.newRTC.setLocalDescription(answer);
-      await $.post('/response', JSON.stringify({ answer: answer, uuid: data.request_uuid }));
+
+      const response = new DirectMessage(message.source, { answer: answer });
+      await window.gameSSE.sendMessage(response);
 
       break;
     }
@@ -33,15 +35,17 @@ export async function pingWithCode() {
   console.log(result);
 
   const peerConnection = new RTCPeerConnection(RTC_CONFIG);
-  window.clientSSE = new EventSource('/await');
-  window.clientSSE.addEventListener('message', async function(event) {
-    const data = JSON.parse(event.data);
+  window.clientSSE = new SSE();
+  window.clientSSE.addListener(async function(message) {
+    const data = message.message;
     console.log("Got SDP answer");
     await peerConnection.setRemoteDescription(data.answer);
   });
   const offer = await peerConnection.createOffer();
   await peerConnection.setLocalDescription(offer);
-  await $.post('/offer', JSON.stringify(offer));
+
+  const response = new DirectMessage(result.target, { type: 'sdp', offer: offer });
+  await window.clientSSE.sendMessage(response);
 }
 
 export function setupConnectPage() {
