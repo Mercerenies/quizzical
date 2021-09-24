@@ -6,6 +6,8 @@
     "target": "ES6",
     "outDir": "public",
     "strict": true,
+    "incremental": true,
+    "tsBuildInfoFile": "build-cache/.tsbuildinfo"
   },
   "include": [
     "ts/**/*"
