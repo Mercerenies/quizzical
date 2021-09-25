@@ -63,6 +63,12 @@ get '/listen' do
   { type: 'code', code: code }.to_json
 end
 
+get '/whoami' do
+  uuid = UUID.get(session)
+  content_type 'text/plain'
+  uuid
+end
+
 get '/ping' do
   content_type 'application/json'
   if params['code']
