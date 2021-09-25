@@ -33,6 +33,10 @@ class LobbyAsHost implements Lobby {
       this.peer.on('connection', (conn) => {
         console.log("Got connection from " + conn.metadata.uuid);
         this.connections.set(conn.metadata.uuid, conn);
+        conn.on('data', (data) => {
+          console.log(`Received ${data}`);
+        });
+        setTimeout(() => conn.send("Pong"), 3000);
       });
     });
 
@@ -58,12 +62,14 @@ class LobbyAsGuest implements Lobby {
   private sse: SSE;
   private host: string;
   private peer: Peer;
+  private conn: DataConnection | undefined;
 
   constructor(code: string, sse: SSE, host: string) {
     this.code = code;
     this.sse = sse;
     this.host = host;
     this.peer = new Peer(undefined, { debug: PEER_DEBUG_LEVEL });
+    this.conn = undefined;
 
     this.sse.addListener(LOBBY_MESSAGE_TYPE, (message) => this.handleMessage(message));
     this.peer.on("open", async () => await this.tryToConnect());
@@ -82,8 +88,13 @@ class LobbyAsGuest implements Lobby {
         console.log("Got peer ID " + peerId);
         const metadata = { uuid: selfId };
         const conn = this.peer.connect(peerId, { metadata: metadata });
-        conn.on('open', function() {
+        conn.on('open', () => {
           console.log("Got connection");
+          this.conn = conn;
+          conn.on('data', (data) => {
+            console.log(`Received ${data}`);
+          });
+          setTimeout(() => conn.send("Ping"), 3000);
         });
         break;
     }
