@@ -19,6 +19,10 @@ export interface Lobby {
 
   sendMessageTo(target: string, message: any): void;
 
+  addListener(listener: PeerListener): void;
+
+  removeListener(listener: PeerListener): boolean;
+
 }
 
 class LobbyAsHost implements Lobby {
@@ -26,12 +30,14 @@ class LobbyAsHost implements Lobby {
   private peer: Peer;
   private connections: Map<string, DataConnection>;
   private host: string;
+  private listeners: PeerListener[];
 
   constructor(code: string, host: string) {
     this.code = code;
     this.peer = new Peer(undefined, { debug: PEER_DEBUG_LEVEL });
     this.connections = new Map();
     this.host = host;
+    this.listeners = [];
 
     SSE.get().addListener(LOBBY_MESSAGE_TYPE, (message) => this.handleMessage(message));
 
@@ -64,7 +70,7 @@ class LobbyAsHost implements Lobby {
   }
 
   private onMessage(source: string, message: any): void {
-    console.log(`Received ${message} from ${source}`);
+    this.listeners.forEach((listener) => listener(message, source));
   }
 
   sendMessageTo(target: string, message: any): void {
@@ -75,6 +81,20 @@ class LobbyAsHost implements Lobby {
     conn.send(message);
   }
 
+  addListener(listener: PeerListener): void {
+    this.listeners.push(listener);
+  }
+
+  removeListener(listener: PeerListener): boolean {
+    let index = this.listeners.findIndex(function(x) { return x == listener; });
+    if (index >= 0) {
+      this.listeners.splice(index, 1);
+      return true;
+    } else {
+      return false;
+    }
+  }
+
 }
 
 class LobbyAsGuest implements Lobby {
@@ -82,12 +102,14 @@ class LobbyAsGuest implements Lobby {
   private host: string;
   private peer: Peer;
   private conn: DataConnection | undefined;
+  private listeners: PeerListener[];
 
   constructor(code: string, host: string) {
     this.code = code;
     this.host = host;
     this.peer = new Peer(undefined, { debug: PEER_DEBUG_LEVEL });
     this.conn = undefined;
+    this.listeners = [];
 
     SSE.get().addListener(LOBBY_MESSAGE_TYPE, (message) => this.handleMessage(message));
     this.peer.on("open", async () => await this.tryToConnect());
@@ -124,7 +146,7 @@ class LobbyAsGuest implements Lobby {
   }
 
   private onMessage(message: any): void {
-    console.log(`Received ${message}`);
+    this.listeners.forEach((listener) => listener(message, this.host));
   }
 
   sendMessageTo(target: string, message: any): void {
@@ -138,6 +160,24 @@ class LobbyAsGuest implements Lobby {
     this.conn.send(message);
   }
 
+  addListener(listener: PeerListener): void {
+    this.listeners.push(listener);
+  }
+
+  removeListener(listener: PeerListener): boolean {
+    let index = this.listeners.findIndex(function(x) { return x == listener; });
+    if (index >= 0) {
+      this.listeners.splice(index, 1);
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+}
+
+export interface PeerListener {
+  (message: any, source: string): void;
 }
 
 export async function hostLobby(): Promise<Lobby> {
