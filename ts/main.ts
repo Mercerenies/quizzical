@@ -2,8 +2,10 @@
 import { SSE, DirectMessage } from './sse.js';
 import { RTC_CONFIG, LOBBY_MESSAGE_TYPE, hostLobby, joinLobby } from './lobby.js';
 
+const DEFAULT_MAX_PLAYERS = 4;
+
 export async function setupNewGame(): Promise<void> {
-  const lobby = await hostLobby();
+  const lobby = await hostLobby(DEFAULT_MAX_PLAYERS);
   $("#code").text(lobby.code);
 }
 
