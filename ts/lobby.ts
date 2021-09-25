@@ -8,6 +8,8 @@ export const ICE_MESSAGE_TYPE = "Lobby.ICE_MESSAGE_TYPE";
 
 export const DATA_CHANNEL_LABEL = "Lobby.DATA_CHANNEL_LABEL";
 
+export const PEER_DEBUG_LEVEL = 2;
+
 export interface Lobby {
   readonly code: string;
 }
@@ -16,18 +18,21 @@ class LobbyAsHost implements Lobby {
   readonly code: string;
   private peer: Peer;
   private sse: SSE; // TODO Get rid of this (it's a singleton)
+  private connections: Map<string, DataConnection>;
 
   constructor(code: string, sse: SSE) {
     this.code = code;
-    this.peer = new Peer();
+    this.peer = new Peer(undefined, { debug: PEER_DEBUG_LEVEL });
     this.sse = sse;
+    this.connections = new Map();
 
     this.sse.addListener(LOBBY_MESSAGE_TYPE, (message) => this.handleMessage(message));
 
     this.peer.on('open', () => {
       console.log("Peer setup at " + this.getPeerId());
-      this.peer.on('connection', function(conn) {
-        console.log("Got connection");
+      this.peer.on('connection', (conn) => {
+        console.log("Got connection from " + conn.metadata.uuid);
+        this.connections.set(conn.metadata.uuid, conn);
       });
     });
 
@@ -58,9 +63,10 @@ class LobbyAsGuest implements Lobby {
     this.code = code;
     this.sse = sse;
     this.host = host;
-    this.peer = new Peer();
+    this.peer = new Peer(undefined, { debug: PEER_DEBUG_LEVEL });
 
     this.sse.addListener(LOBBY_MESSAGE_TYPE, (message) => this.handleMessage(message));
+    this.peer.on("open", async () => await this.tryToConnect());
 
   }
 
@@ -71,9 +77,11 @@ class LobbyAsGuest implements Lobby {
   async handleMessage(message: IncomingMessage): Promise<void> {
     switch (message.message.type) {
       case "response-peer-id":
+        const selfId = await $.get('/whoami');
         const peerId = message.message.id;
         console.log("Got peer ID " + peerId);
-        const conn = this.peer.connect(peerId);
+        const metadata = { uuid: selfId };
+        const conn = this.peer.connect(peerId, { metadata: metadata });
         conn.on('open', function() {
           console.log("Got connection");
         });
@@ -95,7 +103,6 @@ export async function joinLobby(code: string): Promise<Lobby> {
   const pingResult = await $.get(`/ping?code=${code}`);
   const sse = SSE.get();
   const lobby = new LobbyAsGuest(code, sse, pingResult.target);
-  await lobby.tryToConnect();
 
   return lobby;
 }
