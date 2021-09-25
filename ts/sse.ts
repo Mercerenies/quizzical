@@ -23,6 +23,17 @@ export class SSE {
     listenerList.push(listener);
   }
 
+  removeListener(messageType: string, listener: SSEListener): boolean {
+    const listenerList = (this.listeners.get(messageType) || []);
+    const index = listenerList.findIndex(function(x) { return x == listener; });
+    if (index >= 0) {
+      listenerList.splice(index, 1);
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   private onMessage(data: IncomingMessage): void {
     (this.listeners.get(data.messageType) || []).forEach(function(listener) { listener(data) });
   }
@@ -51,9 +62,9 @@ export interface OutgoingMessage {
 }
 
 export class DirectMessage implements OutgoingMessage {
-  target: string;
-  messageType: string;
-  message: object;
+  readonly target: string;
+  readonly messageType: string;
+  readonly message: object;
 
   constructor(target: string, messageType: string, message: object) {
     this.target = target;
@@ -76,8 +87,8 @@ export class DirectMessage implements OutgoingMessage {
 }
 
 export class BroadcastMessage implements OutgoingMessage {
-  messageType: string;
-  message: object;
+  readonly messageType: string;
+  readonly message: object;
 
   constructor(messageType: string, message: object) {
     this.messageType = messageType;
@@ -98,15 +109,15 @@ export class BroadcastMessage implements OutgoingMessage {
 }
 
 export interface IncomingMessageBase {
-  source: string;
-  messageType: string;
-  message: any;
+  readonly source: string;
+  readonly messageType: string;
+  readonly message: any;
 }
 
 export class IncomingMessage {
-  source: string;
-  messageType: string;
-  message: any; // TODO: Generic? Make this not 'any' at least
+  readonly source: string;
+  readonly messageType: string;
+  readonly message: any; // TODO: Generic? Make this not 'any' at least
 
   constructor(source: string, messageType: string, message: any) {
     this.source = source;
