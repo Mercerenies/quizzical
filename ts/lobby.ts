@@ -246,6 +246,7 @@ class LobbyAsGuest implements Lobby {
           console.log("Got connection");
           this.conn = conn;
           conn.on('data', (data) => this.onMessage(data));
+          this.listeners.forEach((listener) => listener.onConnect(this.getHostId()));
         });
         break;
     }
@@ -286,9 +287,9 @@ export interface LobbyListener {
 
   // This event fires on all lobby types
   onMessage(message: any, source: PlayerUUID): void;
+  onConnect(player: PlayerUUID): void;
 
   // These events only fire for the host of the lobby
-  onConnect(player: PlayerUUID): void;
   onDisconnect(player: PlayerUUID): void;
   onReconnect(player: PlayerUUID): void;
 
