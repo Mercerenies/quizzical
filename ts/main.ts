@@ -8,7 +8,7 @@ export async function setupNewGame(): Promise<void> {
   $("#code").text(code);
 
   const gameSSE = SSE.get();
-  gameSSE.addListener(async function(message) {
+  gameSSE.addListener('TMP', async function(message) {
     const data = message.message;
     switch (data.type) {
     case 'sdp':
@@ -20,7 +20,7 @@ export async function setupNewGame(): Promise<void> {
       const answer = await newRTC.createAnswer();
       await newRTC.setLocalDescription(answer);
 
-      const response = new DirectMessage(message.source, { answer: answer });
+      const response = new DirectMessage(message.source, 'TMP', { answer: answer });
       await gameSSE.sendMessage(response);
 
       break;
@@ -35,7 +35,7 @@ export async function pingWithCode(): Promise<void> {
 
   const peerConnection = new RTCPeerConnection(RTC_CONFIG);
   const clientSSE = SSE.get();
-  clientSSE.addListener(async function(message) {
+  clientSSE.addListener('TMP', async function(message) {
     const data = message.message;
     console.log("Got SDP answer");
     await peerConnection.setRemoteDescription(data.answer);
@@ -43,7 +43,7 @@ export async function pingWithCode(): Promise<void> {
   const offer = await peerConnection.createOffer();
   await peerConnection.setLocalDescription(offer);
 
-  const response = new DirectMessage(result.target, { type: 'sdp', offer: offer });
+  const response = new DirectMessage(result.target, 'TMP', { type: 'sdp', offer: offer });
   await clientSSE.sendMessage(response);
 }
 

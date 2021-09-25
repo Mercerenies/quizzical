@@ -15,7 +15,7 @@ export function setupNewGame() {
         const code = newGameResult.code;
         $("#code").text(code);
         const gameSSE = SSE.get();
-        gameSSE.addListener(function (message) {
+        gameSSE.addListener('TMP', function (message) {
             return __awaiter(this, void 0, void 0, function* () {
                 const data = message.message;
                 switch (data.type) {
@@ -26,7 +26,7 @@ export function setupNewGame() {
                         newRTC.setRemoteDescription(sdp);
                         const answer = yield newRTC.createAnswer();
                         yield newRTC.setLocalDescription(answer);
-                        const response = new DirectMessage(message.source, { answer: answer });
+                        const response = new DirectMessage(message.source, 'TMP', { answer: answer });
                         yield gameSSE.sendMessage(response);
                         break;
                 }
@@ -41,7 +41,7 @@ export function pingWithCode() {
         console.log(result);
         const peerConnection = new RTCPeerConnection(RTC_CONFIG);
         const clientSSE = SSE.get();
-        clientSSE.addListener(function (message) {
+        clientSSE.addListener('TMP', function (message) {
             return __awaiter(this, void 0, void 0, function* () {
                 const data = message.message;
                 console.log("Got SDP answer");
@@ -50,7 +50,7 @@ export function pingWithCode() {
         });
         const offer = yield peerConnection.createOffer();
         yield peerConnection.setLocalDescription(offer);
-        const response = new DirectMessage(result.target, { type: 'sdp', offer: offer });
+        const response = new DirectMessage(result.target, 'TMP', { type: 'sdp', offer: offer });
         yield clientSSE.sendMessage(response);
     });
 }

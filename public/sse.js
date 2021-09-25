@@ -10,18 +10,23 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 let _sseSingleton = null;
 export class SSE {
     constructor() {
-        this.listeners = [];
+        this.listeners = new Map();
         this.sse = new EventSource('/sse/listen');
         this.sse.addEventListener('message', (event) => {
             const data = IncomingMessage.fromJSON(JSON.parse(event.data));
             this.onMessage(data);
         });
     }
-    addListener(listener) {
-        this.listeners.push(listener);
+    addListener(messageType, listener) {
+        let listenerList = this.listeners.get(messageType);
+        if (listenerList === undefined) {
+            listenerList = [];
+            this.listeners.set(messageType, listenerList);
+        }
+        listenerList.push(listener);
     }
     onMessage(data) {
-        this.listeners.forEach(function (listener) { listener(data); });
+        (this.listeners.get(data.messageType) || []).forEach(function (listener) { listener(data); });
     }
     sendMessage(message) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -37,13 +42,15 @@ export class SSE {
     }
 }
 export class DirectMessage {
-    constructor(target, message) {
+    constructor(target, messageType, message) {
         this.target = target;
+        this.messageType = messageType;
         this.message = message;
     }
     toJSON() {
         return {
             target: this.target,
+            messageType: this.messageType,
             message: this.message,
         };
     }
@@ -52,11 +59,13 @@ export class DirectMessage {
     }
 }
 export class BroadcastMessage {
-    constructor(message) {
+    constructor(messageType, message) {
+        this.messageType = messageType;
         this.message = message;
     }
     toJSON() {
         return {
+            messageType: this.messageType,
             message: this.message,
         };
     }
@@ -65,11 +74,12 @@ export class BroadcastMessage {
     }
 }
 export class IncomingMessage {
-    constructor(source, message) {
+    constructor(source, messageType, message) {
         this.source = source;
+        this.messageType = messageType;
         this.message = message;
     }
     static fromJSON(json) {
-        return new IncomingMessage(json.source, json.message);
+        return new IncomingMessage(json.source, json.messageType, json.message);
     }
 }

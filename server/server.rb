@@ -92,10 +92,11 @@ post '/sse/send' do
   request.body.rewind
   body = JSON.parse(request.body.read)
   target_uuid = body['target']
+  target_msg_type = body['messageType']
   target_msg = body['message']
   conn = $sse[target_uuid]
   if conn
-    conn << { source: UUID.get(session), message: target_msg }
+    conn << { source: UUID.get(session), messageType: target_msg_type, message: target_msg }
     "OK"
   else
     status 400
@@ -106,9 +107,10 @@ end
 post '/sse/broadcast' do
   request.body.rewind
   body = JSON.parse(request.body.read)
+  target_msg_type = body['messageType']
   target_msg = body['message']
   $sse.each do |conn|
-    conn << { source: UUID.get(session), message: target_msg }
+    conn << { source: UUID.get(session), messageType: target_msg_type, message: target_msg }
   end
   "OK"
 end

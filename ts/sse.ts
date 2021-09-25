@@ -2,11 +2,11 @@
 let _sseSingleton: SSE | null = null;
 
 export class SSE {
-  private listeners: SSEListener[];
+  private listeners: Map<string, SSEListener[]>;
   private sse: EventSource;
 
   constructor() {
-    this.listeners = []
+    this.listeners = new Map();
     this.sse = new EventSource('/sse/listen');
     this.sse.addEventListener('message', (event) => {
       const data = IncomingMessage.fromJSON(JSON.parse(event.data));
@@ -14,12 +14,17 @@ export class SSE {
     });
   }
 
-  addListener(listener: SSEListener): void {
-    this.listeners.push(listener);
+  addListener(messageType: string, listener: SSEListener): void {
+    let listenerList = this.listeners.get(messageType);
+    if (listenerList === undefined) {
+      listenerList = [];
+      this.listeners.set(messageType, listenerList);
+    }
+    listenerList.push(listener);
   }
 
   private onMessage(data: IncomingMessage): void {
-    this.listeners.forEach(function(listener) { listener(data) });
+    (this.listeners.get(data.messageType) || []).forEach(function(listener) { listener(data) });
   }
 
   async sendMessage(message: OutgoingMessage): Promise<void> {
@@ -47,16 +52,19 @@ export interface OutgoingMessage {
 
 export class DirectMessage implements OutgoingMessage {
   target: string;
+  messageType: string;
   message: object;
 
-  constructor(target: string, message: object) {
+  constructor(target: string, messageType: string, message: object) {
     this.target = target;
+    this.messageType = messageType;
     this.message = message;
   }
 
   toJSON(): object {
     return {
       target: this.target,
+      messageType: this.messageType,
       message: this.message,
     };
   }
@@ -68,14 +76,17 @@ export class DirectMessage implements OutgoingMessage {
 }
 
 export class BroadcastMessage implements OutgoingMessage {
+  messageType: string;
   message: object;
 
-  constructor(message: object) {
+  constructor(messageType: string, message: object) {
+    this.messageType = messageType;
     this.message = message;
   }
 
   toJSON(): object {
     return {
+      messageType: this.messageType,
       message: this.message,
     };
   }
@@ -88,20 +99,23 @@ export class BroadcastMessage implements OutgoingMessage {
 
 export interface IncomingMessageBase {
   source: string;
-  message: string;
+  messageType: string;
+  message: any;
 }
 
 export class IncomingMessage {
   source: string;
+  messageType: string;
   message: any; // TODO: Generic? Make this not 'any' at least
 
-  constructor(source: string, message: any) {
+  constructor(source: string, messageType: string, message: any) {
     this.source = source;
+    this.messageType = messageType;
     this.message = message;
   }
 
   static fromJSON(json: IncomingMessageBase): IncomingMessage {
-    return new IncomingMessage(json.source, json.message);
+    return new IncomingMessage(json.source, json.messageType, json.message);
   }
 
 }
