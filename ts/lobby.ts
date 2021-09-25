@@ -110,7 +110,6 @@ class LobbyAsHost implements HostLobby {
 
   private onConnection(conn: DataConnection): void {
     const uuid: PlayerUUID = conn.metadata.uuid;
-    console.log("Got connection from " + uuid);
 
     // Make sure we have room for the player
     if (!this.canPlayerJoin(uuid)) {
@@ -272,6 +271,17 @@ export interface LobbyListener {
   onDisconnect(player: PlayerUUID): void;
   onReconnect(player: PlayerUUID): void;
 
+}
+
+// TODO Distinguish between the two states (game started vs still accepting new players)
+// * When game already started, new folks cannot join
+// * If someone disconnects during "still accepting", they're completely purged from the system
+
+export class AbstractLobbyListener implements LobbyListener {
+  onMessage(message: any, source: PlayerUUID): void {}
+  onConnect(player: PlayerUUID): void {}
+  onDisconnect(player: PlayerUUID): void {}
+  onReconnect(player: PlayerUUID): void {}
 }
 
 export async function hostLobby(maxPlayers: number): Promise<HostLobby> {
