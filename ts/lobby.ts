@@ -20,13 +20,12 @@ export interface Lobby {
   readonly code: string;
 
   getPeerId(): PeerUUID;
-
   getHostId(): PlayerUUID;
+  getSelfId(): PlayerUUID;
 
   sendMessageTo(target: PlayerUUID, message: LobbyMessage): void;
 
   addListener(listener: LobbyListener): void;
-
   removeListener(listener: LobbyListener): boolean;
 
 }
@@ -39,7 +38,6 @@ export interface HostLobby extends Lobby {
   players(): Iterable<PlayerUUID>;
 
   hasGameStarted(): boolean;
-
   startGame(): void;
 
 }
@@ -82,6 +80,10 @@ class LobbyAsHost implements HostLobby {
   }
 
   getHostId(): PlayerUUID {
+    return this.host;
+  }
+
+  getSelfId(): PlayerUUID {
     return this.host;
   }
 
@@ -135,7 +137,7 @@ class LobbyAsHost implements HostLobby {
     // Make sure we have room for the player
     if (!this.canPlayerJoin(uuid)) {
       console.log("Blocking connection (not enough room)");
-      conn.send({ type: META_ERROR_MESSAGE_TYPE, error: LobbyErrorCode.TOO_MANY_PLAYERS });
+      conn.send({ type: META_ERROR_MESSAGE_TYPE, error: LobbyErrorCode.TOO_MANY_PLAYERS }); ////
       conn.close();
     }
 
@@ -212,13 +214,15 @@ class LobbyAsHost implements HostLobby {
 class LobbyAsGuest implements Lobby {
   readonly code: string;
   private host: PlayerUUID;
+  private selfId: PlayerUUID;
   private peer: Peer;
   private conn: DataConnection | undefined;
   private listeners: LobbyListener[];
 
-  constructor(code: string, host: PlayerUUID) {
+  constructor(code: string, host: PlayerUUID, selfId: PlayerUUID) {
     this.code = code;
     this.host = host;
+    this.selfId = selfId;
     this.peer = new Peer(undefined, { debug: PEER_DEBUG_LEVEL });
     this.conn = undefined;
     this.listeners = [];
@@ -236,6 +240,10 @@ class LobbyAsGuest implements Lobby {
     return this.host;
   }
 
+  getSelfId(): PlayerUUID {
+    return this.selfId;
+  }
+
   private async tryToConnect(): Promise<void> {
     await SSE.get().sendMessage(new DirectMessage(this.host, LOBBY_MESSAGE_TYPE, { type: 'get-peer-id' }));
   }
@@ -243,7 +251,7 @@ class LobbyAsGuest implements Lobby {
   private async handleMessage(message: IncomingMessage): Promise<void> {
     switch (message.message.type) {
       case "response-peer-id":
-        const selfId = await $.get('/whoami');
+        const selfId = this.selfId;
         const peerId = message.message.id;
         console.log("Got peer ID " + peerId);
         const metadata = { uuid: selfId };
@@ -319,7 +327,8 @@ export async function hostLobby(maxPlayers: number): Promise<HostLobby> {
 
 export async function joinLobby(code: string): Promise<Lobby> {
   const pingResult = await $.get(`/ping?code=${code}`);
-  const lobby = new LobbyAsGuest(code, pingResult.target);
+  const selfId = await $.get('/whoami');
+  const lobby = new LobbyAsGuest(code, pingResult.target, selfId);
 
   return lobby;
 }
