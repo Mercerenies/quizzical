@@ -12,6 +12,9 @@ export const PEER_DEBUG_LEVEL = 2;
 
 export interface Lobby {
   readonly code: string;
+
+  getPeerId(): string;
+
 }
 
 class LobbyAsHost implements Lobby {
@@ -33,9 +36,7 @@ class LobbyAsHost implements Lobby {
       this.peer.on('connection', (conn) => {
         console.log("Got connection from " + conn.metadata.uuid);
         this.connections.set(conn.metadata.uuid, conn);
-        conn.on('data', (data) => {
-          console.log(`Received ${data}`);
-        });
+        conn.on('data', (data) => this.onMessage(conn.metadata.uuid, data));
         setTimeout(() => conn.send("Pong"), 3000);
       });
     });
@@ -46,13 +47,17 @@ class LobbyAsHost implements Lobby {
     return this.peer.id;
   }
 
-  async handleMessage(message: IncomingMessage): Promise<void> {
+  private async handleMessage(message: IncomingMessage): Promise<void> {
     switch (message.message.type) {
       case "get-peer-id":
         const response = new DirectMessage(message.source, LOBBY_MESSAGE_TYPE, { type: "response-peer-id", id: this.getPeerId() });
         this.sse.sendMessage(response);
         break;
     }
+  }
+
+  private onMessage(source: string, message: any): void {
+    console.log(`Received ${message} from ${source}`);
   }
 
 }
@@ -76,11 +81,15 @@ class LobbyAsGuest implements Lobby {
 
   }
 
-  async tryToConnect(): Promise<void> {
+  getPeerId(): string {
+    return this.peer.id;
+  }
+
+  private async tryToConnect(): Promise<void> {
     await this.sse.sendMessage(new DirectMessage(this.host, LOBBY_MESSAGE_TYPE, { type: 'get-peer-id' }));
   }
 
-  async handleMessage(message: IncomingMessage): Promise<void> {
+  private async handleMessage(message: IncomingMessage): Promise<void> {
     switch (message.message.type) {
       case "response-peer-id":
         const selfId = await $.get('/whoami');
@@ -91,13 +100,15 @@ class LobbyAsGuest implements Lobby {
         conn.on('open', () => {
           console.log("Got connection");
           this.conn = conn;
-          conn.on('data', (data) => {
-            console.log(`Received ${data}`);
-          });
+          conn.on('data', (data) => this.onMessage(data));
           setTimeout(() => conn.send("Ping"), 3000);
         });
         break;
     }
+  }
+
+  private onMessage(message: any): void {
+    console.log(`Received ${message}`);
   }
 
 }
