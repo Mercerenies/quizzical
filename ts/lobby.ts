@@ -20,16 +20,14 @@ export interface Lobby {
 class LobbyAsHost implements Lobby {
   readonly code: string;
   private peer: Peer;
-  private sse: SSE; // TODO Get rid of this (it's a singleton)
   private connections: Map<string, DataConnection>;
 
-  constructor(code: string, sse: SSE) {
+  constructor(code: string) {
     this.code = code;
     this.peer = new Peer(undefined, { debug: PEER_DEBUG_LEVEL });
-    this.sse = sse;
     this.connections = new Map();
 
-    this.sse.addListener(LOBBY_MESSAGE_TYPE, (message) => this.handleMessage(message));
+    SSE.get().addListener(LOBBY_MESSAGE_TYPE, (message) => this.handleMessage(message));
 
     this.peer.on('open', () => {
       console.log("Peer setup at " + this.getPeerId());
@@ -51,7 +49,7 @@ class LobbyAsHost implements Lobby {
     switch (message.message.type) {
       case "get-peer-id":
         const response = new DirectMessage(message.source, LOBBY_MESSAGE_TYPE, { type: "response-peer-id", id: this.getPeerId() });
-        this.sse.sendMessage(response);
+        SSE.get().sendMessage(response);
         break;
     }
   }
@@ -64,19 +62,17 @@ class LobbyAsHost implements Lobby {
 
 class LobbyAsGuest implements Lobby {
   readonly code: string;
-  private sse: SSE;
   private host: string;
   private peer: Peer;
   private conn: DataConnection | undefined;
 
-  constructor(code: string, sse: SSE, host: string) {
+  constructor(code: string, host: string) {
     this.code = code;
-    this.sse = sse;
     this.host = host;
     this.peer = new Peer(undefined, { debug: PEER_DEBUG_LEVEL });
     this.conn = undefined;
 
-    this.sse.addListener(LOBBY_MESSAGE_TYPE, (message) => this.handleMessage(message));
+    SSE.get().addListener(LOBBY_MESSAGE_TYPE, (message) => this.handleMessage(message));
     this.peer.on("open", async () => await this.tryToConnect());
 
   }
@@ -86,7 +82,7 @@ class LobbyAsGuest implements Lobby {
   }
 
   private async tryToConnect(): Promise<void> {
-    await this.sse.sendMessage(new DirectMessage(this.host, LOBBY_MESSAGE_TYPE, { type: 'get-peer-id' }));
+    await SSE.get().sendMessage(new DirectMessage(this.host, LOBBY_MESSAGE_TYPE, { type: 'get-peer-id' }));
   }
 
   private async handleMessage(message: IncomingMessage): Promise<void> {
@@ -116,15 +112,14 @@ class LobbyAsGuest implements Lobby {
 export async function hostLobby(): Promise<Lobby> {
   const listenResult = await $.get('/listen');
   const code = listenResult.code;
-  const lobby = new LobbyAsHost(code, SSE.get());
+  const lobby = new LobbyAsHost(code);
 
   return lobby;
 }
 
 export async function joinLobby(code: string): Promise<Lobby> {
   const pingResult = await $.get(`/ping?code=${code}`);
-  const sse = SSE.get();
-  const lobby = new LobbyAsGuest(code, sse, pingResult.target);
+  const lobby = new LobbyAsGuest(code, pingResult.target);
 
   return lobby;
 }
