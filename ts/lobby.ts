@@ -27,6 +27,11 @@ export interface Lobby {
 
 export interface HostLobby extends Lobby {
   readonly maxPlayers: number;
+
+  peerExists(uuid: string): boolean | "disconnected";
+
+  players(): Iterable<string>;
+
 }
 
 class LobbyAsHost implements HostLobby {
@@ -60,6 +65,24 @@ class LobbyAsHost implements HostLobby {
 
   getHostId(): string {
     return this.host;
+  }
+
+  players(): Iterable<string> {
+    return this.connections.keys();
+  }
+
+  peerExists(uuid: string): boolean | "disconnected" {
+    const conn = this.connections.get(uuid);
+    if (conn === undefined) {
+      // No peer exists
+      return false;
+    } else if (conn === null) {
+      // Peer exists but is disconnected
+      return "disconnected";
+    } else {
+      // Peer exists and is working correctly
+      return true;
+    }
   }
 
   private onConnection(conn: DataConnection): void {
