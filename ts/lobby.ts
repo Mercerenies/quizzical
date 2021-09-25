@@ -1,5 +1,6 @@
 
 import { SSE, DirectMessage, IncomingMessage } from './sse.js';
+import { PlayerUUID, PeerUUID } from './uuid.js';
 
 export const RTC_CONFIG = {'iceServers': [{'urls': 'stun:stun.l.google.com:19302'}]};
 
@@ -13,11 +14,11 @@ export const PEER_DEBUG_LEVEL = 2;
 export interface Lobby {
   readonly code: string;
 
-  getPeerId(): string;
+  getPeerId(): PeerUUID;
 
-  getHostId(): string;
+  getHostId(): PlayerUUID;
 
-  sendMessageTo(target: string, message: any): void;
+  sendMessageTo(target: PlayerUUID, message: any): void;
 
   addListener(listener: PeerListener): void;
 
@@ -28,9 +29,9 @@ export interface Lobby {
 export interface HostLobby extends Lobby {
   readonly maxPlayers: number;
 
-  peerExists(uuid: string): boolean | "disconnected";
+  peerExists(uuid: PlayerUUID): boolean | "disconnected";
 
-  players(): Iterable<string>;
+  players(): Iterable<PlayerUUID>;
 
 }
 
@@ -38,11 +39,11 @@ class LobbyAsHost implements HostLobby {
   readonly code: string;
   readonly maxPlayers: number;
   private peer: Peer;
-  private connections: Map<string, DataConnection | null>;
-  private host: string;
+  private connections: Map<PlayerUUID, DataConnection | null>;
+  private host: PlayerUUID;
   private listeners: PeerListener[];
 
-  constructor(code: string, maxPlayers: number, host: string) {
+  constructor(code: string, maxPlayers: number, host: PlayerUUID) {
     this.code = code;
     this.peer = new Peer(undefined, { debug: PEER_DEBUG_LEVEL });
     this.connections = new Map();
@@ -59,19 +60,19 @@ class LobbyAsHost implements HostLobby {
 
   }
 
-  getPeerId(): string {
-    return this.peer.id;
+  getPeerId(): PeerUUID {
+    return this.peer.id as PeerUUID;
   }
 
-  getHostId(): string {
+  getHostId(): PlayerUUID {
     return this.host;
   }
 
-  players(): Iterable<string> {
+  players(): Iterable<PlayerUUID> {
     return this.connections.keys();
   }
 
-  peerExists(uuid: string): boolean | "disconnected" {
+  peerExists(uuid: PlayerUUID): boolean | "disconnected" {
     const conn = this.connections.get(uuid);
     if (conn === undefined) {
       // No peer exists
@@ -86,7 +87,7 @@ class LobbyAsHost implements HostLobby {
   }
 
   private onConnection(conn: DataConnection): void {
-    const uuid: string = conn.metadata.uuid;
+    const uuid: PlayerUUID = conn.metadata.uuid;
     console.log("Got connection from " + uuid);
     this.connections.set(uuid, conn);
     conn.on('data', (data) => this.onMessage(uuid, data));
@@ -94,7 +95,7 @@ class LobbyAsHost implements HostLobby {
   }
 
   private onConnectionClosed(conn: DataConnection): void {
-    const uuid: string = conn.metadata.uuid;
+    const uuid: PlayerUUID = conn.metadata.uuid;
     console.log("Closed connection (" + uuid + ")");
     this.connections.set(uuid, null);
   }
@@ -108,11 +109,11 @@ class LobbyAsHost implements HostLobby {
     }
   }
 
-  private onMessage(source: string, message: any): void {
+  private onMessage(source: PlayerUUID, message: any): void {
     this.listeners.forEach((listener) => listener(message, source));
   }
 
-  sendMessageTo(target: string, message: any): void {
+  sendMessageTo(target: PlayerUUID, message: any): void {
     const conn = this.connections.get(target);
     if (conn === undefined) {
       // There is no one with that UUID, so it's an error.
@@ -144,12 +145,12 @@ class LobbyAsHost implements HostLobby {
 
 class LobbyAsGuest implements Lobby {
   readonly code: string;
-  private host: string;
+  private host: PlayerUUID;
   private peer: Peer;
   private conn: DataConnection | undefined;
   private listeners: PeerListener[];
 
-  constructor(code: string, host: string) {
+  constructor(code: string, host: PlayerUUID) {
     this.code = code;
     this.host = host;
     this.peer = new Peer(undefined, { debug: PEER_DEBUG_LEVEL });
@@ -161,11 +162,11 @@ class LobbyAsGuest implements Lobby {
 
   }
 
-  getPeerId(): string {
-    return this.peer.id;
+  getPeerId(): PeerUUID {
+    return this.peer.id as PeerUUID;
   }
 
-  getHostId(): string {
+  getHostId(): PlayerUUID {
     return this.host;
   }
 
@@ -194,7 +195,7 @@ class LobbyAsGuest implements Lobby {
     this.listeners.forEach((listener) => listener(message, this.host));
   }
 
-  sendMessageTo(target: string, message: any): void {
+  sendMessageTo(target: PlayerUUID, message: any): void {
     if (target != this.getHostId()) {
       // There is only one valid target ID: the host
       throw `Invalid message target ${target}`;
@@ -222,7 +223,7 @@ class LobbyAsGuest implements Lobby {
 }
 
 export interface PeerListener {
-  (message: any, source: string): void;
+  (message: any, source: PlayerUUID): void;
 }
 
 export async function hostLobby(maxPlayers: number): Promise<HostLobby> {

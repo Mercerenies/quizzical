@@ -1,4 +1,6 @@
 
+import { PlayerUUID } from './uuid.js';
+
 let _sseSingleton: SSE | null = null;
 
 export class SSE {
@@ -62,11 +64,11 @@ export interface OutgoingMessage {
 }
 
 export class DirectMessage implements OutgoingMessage {
-  readonly target: string;
+  readonly target: PlayerUUID;
   readonly messageType: string;
   readonly message: object;
 
-  constructor(target: string, messageType: string, message: object) {
+  constructor(target: PlayerUUID, messageType: string, message: object) {
     this.target = target;
     this.messageType = messageType;
     this.message = message;
@@ -109,17 +111,17 @@ export class BroadcastMessage implements OutgoingMessage {
 }
 
 export interface IncomingMessageBase {
-  readonly source: string;
+  readonly source: PlayerUUID;
   readonly messageType: string;
   readonly message: any;
 }
 
 export class IncomingMessage {
-  readonly source: string;
+  readonly source: PlayerUUID;
   readonly messageType: string;
   readonly message: any; // TODO: Generic? Make this not 'any' at least
 
-  constructor(source: string, messageType: string, message: any) {
+  constructor(source: PlayerUUID, messageType: string, message: any) {
     this.source = source;
     this.messageType = messageType;
     this.message = message;
