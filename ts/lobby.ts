@@ -6,8 +6,13 @@ export const RTC_CONFIG = {'iceServers': [{'urls': 'stun:stun.l.google.com:19302
 
 export const LOBBY_MESSAGE_TYPE = "Lobby.LOBBY_MESSAGE_TYPE";
 export const ICE_MESSAGE_TYPE = "Lobby.ICE_MESSAGE_TYPE";
+export const META_ERROR_MESSAGE_TYPE = "Lobby.META_ERROR_MESSAGE_TYPE";
 
 export const DATA_CHANNEL_LABEL = "Lobby.DATA_CHANNEL_LABEL";
+
+export enum LobbyErrorCode {
+  TOO_MANY_PLAYERS = "TOO_MANY_PLAYERS",
+}
 
 export const PEER_DEBUG_LEVEL = 2;
 
@@ -20,9 +25,9 @@ export interface Lobby {
 
   sendMessageTo(target: PlayerUUID, message: any): void;
 
-  addListener(listener: PeerListener): void;
+  addListener(listener: LobbyListener): void;
 
-  removeListener(listener: PeerListener): boolean;
+  removeListener(listener: LobbyListener): boolean;
 
 }
 
@@ -41,7 +46,7 @@ class LobbyAsHost implements HostLobby {
   private peer: Peer;
   private connections: Map<PlayerUUID, DataConnection | null>;
   private host: PlayerUUID;
-  private listeners: PeerListener[];
+  private listeners: LobbyListener[];
 
   constructor(code: string, maxPlayers: number, host: PlayerUUID) {
     this.code = code;
@@ -72,6 +77,10 @@ class LobbyAsHost implements HostLobby {
     return this.connections.keys();
   }
 
+  playerCount(): number {
+    return [...this.players()].length
+  }
+
   peerExists(uuid: PlayerUUID): boolean | "disconnected" {
     const conn = this.connections.get(uuid);
     if (conn === undefined) {
@@ -86,18 +95,49 @@ class LobbyAsHost implements HostLobby {
     }
   }
 
+  private canPlayerJoin(uuid: PlayerUUID): boolean {
+    if (this.peerExists(uuid)) {
+      // The player had already connected at some point before. This
+      // is a reconnect, so allow it.
+      return true;
+    } else if (this.playerCount() < this.maxPlayers) {
+      // There's room for another player, so allow it.
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   private onConnection(conn: DataConnection): void {
     const uuid: PlayerUUID = conn.metadata.uuid;
     console.log("Got connection from " + uuid);
+
+    // Make sure we have room for the player
+    if (!this.canPlayerJoin(uuid)) {
+      console.log("Blocking connection (not enough room)");
+      conn.send({ type: META_ERROR_MESSAGE_TYPE, error: LobbyErrorCode.TOO_MANY_PLAYERS });
+      conn.close();
+    }
+
+    const isReconnect = this.peerExists(uuid);
+
     this.connections.set(uuid, conn);
     conn.on('data', (data) => this.onMessage(uuid, data));
     conn.on('close', () => this.onConnectionClosed(conn));
+
+    if (isReconnect) {
+      this.listeners.forEach((listener) => listener.onReconnect(uuid));
+    } else {
+      this.listeners.forEach((listener) => listener.onConnect(uuid));
+    }
+
   }
 
   private onConnectionClosed(conn: DataConnection): void {
     const uuid: PlayerUUID = conn.metadata.uuid;
     console.log("Closed connection (" + uuid + ")");
     this.connections.set(uuid, null);
+    this.listeners.forEach((listener) => listener.onDisconnect(uuid));
   }
 
   private async handleMessage(message: IncomingMessage): Promise<void> {
@@ -110,7 +150,7 @@ class LobbyAsHost implements HostLobby {
   }
 
   private onMessage(source: PlayerUUID, message: any): void {
-    this.listeners.forEach((listener) => listener(message, source));
+    this.listeners.forEach((listener) => listener.onMessage(message, source));
   }
 
   sendMessageTo(target: PlayerUUID, message: any): void {
@@ -127,11 +167,11 @@ class LobbyAsHost implements HostLobby {
     conn.send(message);
   }
 
-  addListener(listener: PeerListener): void {
+  addListener(listener: LobbyListener): void {
     this.listeners.push(listener);
   }
 
-  removeListener(listener: PeerListener): boolean {
+  removeListener(listener: LobbyListener): boolean {
     let index = this.listeners.findIndex(function(x) { return x == listener; });
     if (index >= 0) {
       this.listeners.splice(index, 1);
@@ -148,7 +188,7 @@ class LobbyAsGuest implements Lobby {
   private host: PlayerUUID;
   private peer: Peer;
   private conn: DataConnection | undefined;
-  private listeners: PeerListener[];
+  private listeners: LobbyListener[];
 
   constructor(code: string, host: PlayerUUID) {
     this.code = code;
@@ -192,7 +232,7 @@ class LobbyAsGuest implements Lobby {
   }
 
   private onMessage(message: any): void {
-    this.listeners.forEach((listener) => listener(message, this.host));
+    this.listeners.forEach((listener) => listener.onMessage(message, this.host));
   }
 
   sendMessageTo(target: PlayerUUID, message: any): void {
@@ -206,11 +246,11 @@ class LobbyAsGuest implements Lobby {
     this.conn.send(message);
   }
 
-  addListener(listener: PeerListener): void {
+  addListener(listener: LobbyListener): void {
     this.listeners.push(listener);
   }
 
-  removeListener(listener: PeerListener): boolean {
+  removeListener(listener: LobbyListener): boolean {
     let index = this.listeners.findIndex(function(x) { return x == listener; });
     if (index >= 0) {
       this.listeners.splice(index, 1);
@@ -222,8 +262,16 @@ class LobbyAsGuest implements Lobby {
 
 }
 
-export interface PeerListener {
-  (message: any, source: PlayerUUID): void;
+export interface LobbyListener {
+
+  // This event fires on all lobby types
+  onMessage(message: any, source: PlayerUUID): void;
+
+  // These events only fire for the host of the lobby
+  onConnect(player: PlayerUUID): void;
+  onDisconnect(player: PlayerUUID): void;
+  onReconnect(player: PlayerUUID): void;
+
 }
 
 export async function hostLobby(maxPlayers: number): Promise<HostLobby> {
