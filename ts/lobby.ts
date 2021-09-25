@@ -23,7 +23,7 @@ export interface Lobby {
 
   getHostId(): PlayerUUID;
 
-  sendMessageTo(target: PlayerUUID, message: any): void;
+  sendMessageTo(target: PlayerUUID, message: LobbyMessage): void;
 
   addListener(listener: LobbyListener): void;
 
@@ -42,6 +42,12 @@ export interface HostLobby extends Lobby {
 
   startGame(): void;
 
+}
+
+export interface LobbyMessage {
+  readonly source: PlayerUUID;
+  readonly messageType: string;
+  readonly message: any;
 }
 
 class LobbyAsHost implements HostLobby {
@@ -173,7 +179,7 @@ class LobbyAsHost implements HostLobby {
     this.listeners.forEach((listener) => listener.onMessage(message, source));
   }
 
-  sendMessageTo(target: PlayerUUID, message: any): void {
+  sendMessageTo(target: PlayerUUID, message: LobbyMessage): void {
     const conn = this.connections.get(target);
     if (conn === undefined) {
       // There is no one with that UUID, so it's an error.
@@ -256,7 +262,7 @@ class LobbyAsGuest implements Lobby {
     this.listeners.forEach((listener) => listener.onMessage(message, this.host));
   }
 
-  sendMessageTo(target: PlayerUUID, message: any): void {
+  sendMessageTo(target: PlayerUUID, message: LobbyMessage): void {
     if (target != this.getHostId()) {
       // There is only one valid target ID: the host
       throw `Invalid message target ${target}`;
@@ -286,7 +292,7 @@ class LobbyAsGuest implements Lobby {
 export interface LobbyListener {
 
   // This event fires on all lobby types
-  onMessage(message: any, source: PlayerUUID): void;
+  onMessage(message: LobbyMessage, source: PlayerUUID): void;
   onConnect(player: PlayerUUID): void;
 
   // These events only fire for the host of the lobby
@@ -296,7 +302,7 @@ export interface LobbyListener {
 }
 
 export class AbstractLobbyListener implements LobbyListener {
-  onMessage(message: any, source: PlayerUUID): void {}
+  onMessage(message: LobbyMessage, source: PlayerUUID): void {}
   onConnect(player: PlayerUUID): void {}
   onDisconnect(player: PlayerUUID): void {}
   onReconnect(player: PlayerUUID): void {}

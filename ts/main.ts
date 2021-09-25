@@ -5,7 +5,7 @@ import { RTC_CONFIG, LOBBY_MESSAGE_TYPE, hostLobby, joinLobby,
          LobbyListener, AbstractLobbyListener,
          HostLobby } from './lobby.js';
 
-const DEFAULT_MAX_PLAYERS = 4;
+const DEFAULT_MAX_PLAYERS = 1;
 
 class DebugLobbyListener implements LobbyListener {
 
