@@ -38,6 +38,10 @@ export interface HostLobby extends Lobby {
 
   players(): Iterable<PlayerUUID>;
 
+  hasGameStarted(): boolean;
+
+  startGame(): void;
+
 }
 
 class LobbyAsHost implements HostLobby {
@@ -47,6 +51,7 @@ class LobbyAsHost implements HostLobby {
   private connections: Map<PlayerUUID, DataConnection | null>;
   private host: PlayerUUID;
   private listeners: LobbyListener[];
+  private gameStarted: boolean;
 
   constructor(code: string, maxPlayers: number, host: PlayerUUID) {
     this.code = code;
@@ -55,6 +60,7 @@ class LobbyAsHost implements HostLobby {
     this.host = host;
     this.listeners = [];
     this.maxPlayers = maxPlayers;
+    this.gameStarted = false;
 
     SSE.get().addListener(LOBBY_MESSAGE_TYPE, (message) => this.handleMessage(message));
 
@@ -81,6 +87,14 @@ class LobbyAsHost implements HostLobby {
     return [...this.players()].length
   }
 
+  hasGameStarted(): boolean {
+    return this.gameStarted;
+  }
+
+  startGame(): void {
+    this.gameStarted = true;
+  }
+
   peerExists(uuid: PlayerUUID): boolean | "disconnected" {
     const conn = this.connections.get(uuid);
     if (conn === undefined) {
@@ -100,8 +114,9 @@ class LobbyAsHost implements HostLobby {
       // The player had already connected at some point before. This
       // is a reconnect, so allow it.
       return true;
-    } else if (this.playerCount() < this.maxPlayers) {
-      // There's room for another player, so allow it.
+    } else if ((this.playerCount() < this.maxPlayers) && (!this.hasGameStarted())) {
+      // There's room for a new player and the game hasn't started
+      // yet, so allow it. (TODO Some games might allow late arrivals?)
       return true;
     } else {
       return false;
@@ -135,7 +150,13 @@ class LobbyAsHost implements HostLobby {
   private onConnectionClosed(conn: DataConnection): void {
     const uuid: PlayerUUID = conn.metadata.uuid;
     console.log("Closed connection (" + uuid + ")");
-    this.connections.set(uuid, null);
+    if (this.hasGameStarted()) {
+      // Persist the connection so the client can reconnect
+      this.connections.set(uuid, null);
+    } else {
+      // Remove them from the system
+      this.connections.delete(uuid);
+    }
     this.listeners.forEach((listener) => listener.onDisconnect(uuid));
   }
 
@@ -272,10 +293,6 @@ export interface LobbyListener {
   onReconnect(player: PlayerUUID): void;
 
 }
-
-// TODO Distinguish between the two states (game started vs still accepting new players)
-// * When game already started, new folks cannot join
-// * If someone disconnects during "still accepting", they're completely purged from the system
 
 export class AbstractLobbyListener implements LobbyListener {
   onMessage(message: any, source: PlayerUUID): void {}
