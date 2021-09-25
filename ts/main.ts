@@ -9,10 +9,10 @@ export async function setupNewGame(): Promise<void> {
 
 export async function pingWithCode(): Promise<void> {
   const code = $("#code").val();
-  if (!(typeof(code) === 'string')) {
+  if ((!(typeof(code) === 'string')) || (code.length != 4)) {
     throw `Bad lobby code ${code}`;
   }
-  const lobby = await joinLobby(code);
+  const lobby = await joinLobby(code.toUpperCase());
 }
 
 export function setupConnectPage(): void {
