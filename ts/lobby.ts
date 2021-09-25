@@ -15,17 +15,23 @@ export interface Lobby {
 
   getPeerId(): string;
 
+  getHostId(): string;
+
+  sendMessageTo(target: string, message: any): void;
+
 }
 
 class LobbyAsHost implements Lobby {
   readonly code: string;
   private peer: Peer;
   private connections: Map<string, DataConnection>;
+  private host: string;
 
-  constructor(code: string) {
+  constructor(code: string, host: string) {
     this.code = code;
     this.peer = new Peer(undefined, { debug: PEER_DEBUG_LEVEL });
     this.connections = new Map();
+    this.host = host;
 
     SSE.get().addListener(LOBBY_MESSAGE_TYPE, (message) => this.handleMessage(message));
 
@@ -35,7 +41,6 @@ class LobbyAsHost implements Lobby {
         console.log("Got connection from " + conn.metadata.uuid);
         this.connections.set(conn.metadata.uuid, conn);
         conn.on('data', (data) => this.onMessage(conn.metadata.uuid, data));
-        setTimeout(() => conn.send("Pong"), 3000);
       });
     });
 
@@ -43,6 +48,10 @@ class LobbyAsHost implements Lobby {
 
   getPeerId(): string {
     return this.peer.id;
+  }
+
+  getHostId(): string {
+    return this.host;
   }
 
   private async handleMessage(message: IncomingMessage): Promise<void> {
@@ -56,6 +65,14 @@ class LobbyAsHost implements Lobby {
 
   private onMessage(source: string, message: any): void {
     console.log(`Received ${message} from ${source}`);
+  }
+
+  sendMessageTo(target: string, message: any): void {
+    const conn = this.connections.get(target);
+    if (conn === undefined) {
+      throw `Invalid message target ${target}`;
+    }
+    conn.send(message);
   }
 
 }
@@ -81,6 +98,10 @@ class LobbyAsGuest implements Lobby {
     return this.peer.id;
   }
 
+  getHostId(): string {
+    return this.host;
+  }
+
   private async tryToConnect(): Promise<void> {
     await SSE.get().sendMessage(new DirectMessage(this.host, LOBBY_MESSAGE_TYPE, { type: 'get-peer-id' }));
   }
@@ -97,7 +118,6 @@ class LobbyAsGuest implements Lobby {
           console.log("Got connection");
           this.conn = conn;
           conn.on('data', (data) => this.onMessage(data));
-          setTimeout(() => conn.send("Ping"), 3000);
         });
         break;
     }
@@ -107,12 +127,24 @@ class LobbyAsGuest implements Lobby {
     console.log(`Received ${message}`);
   }
 
+  sendMessageTo(target: string, message: any): void {
+    if (target != this.getHostId()) {
+      // There is only one valid target ID: the host
+      throw `Invalid message target ${target}`;
+    }
+    if (this.conn === undefined) {
+      throw "Attempt to send message before connection is established";
+    }
+    this.conn.send(message);
+  }
+
 }
 
 export async function hostLobby(): Promise<Lobby> {
   const listenResult = await $.get('/listen');
+  const host = await $.get('/whoami');
   const code = listenResult.code;
-  const lobby = new LobbyAsHost(code);
+  const lobby = new LobbyAsHost(code, host);
 
   return lobby;
 }
