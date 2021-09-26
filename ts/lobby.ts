@@ -300,10 +300,24 @@ export async function hostLobby(maxPlayers: number): Promise<HostLobby> {
   return lobby;
 }
 
-export async function joinLobby(code: string): Promise<GuestLobby> {
-  const pingResult = await $.get(`/ping?code=${code}`);
+export async function joinLobby(code: string): Promise<GuestLobby | undefined> {
+  const target = await tryPing(code);
+  if (target === undefined) {
+    return undefined;
+  }
+
   const selfId = await $.get('/whoami');
-  const lobby = new GuestLobby(code, pingResult.target, selfId);
+  const lobby = new GuestLobby(code, target, selfId);
 
   return lobby;
+}
+
+async function tryPing(code: string): Promise<PlayerUUID | undefined> {
+  let pingResult: any;
+  try {
+    pingResult = await $.get(`/ping?code=${code}`);
+  } catch {
+    return undefined;
+  }
+  return pingResult.target;
 }
