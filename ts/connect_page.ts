@@ -2,21 +2,29 @@
 import { MessageListener } from './message_dispatcher.js';
 import { DebugLobbyListener } from './debug_lobby_listener.js';
 import { LobbyMessage } from './lobby/listener.js';
-import { META_MESSAGE_TYPE, joinLobby, MetaMessage } from './lobby.js';
+import { META_MESSAGE_TYPE, GuestLobby, joinLobby, MetaMessage } from './lobby.js';
+import { RemoteControlDisplay } from './remote_control.js';
 
 class ConnectStatusUpdater implements MessageListener {
   readonly messageType: string = META_MESSAGE_TYPE;
   private statusField: JQuery<HTMLElement>;
+  private lobby: GuestLobby;
 
-  constructor(statusField: JQuery<HTMLElement>) {
+  constructor(statusField: JQuery<HTMLElement>, lobby: GuestLobby) {
     this.statusField = statusField;
+    this.lobby = lobby;
   }
 
   onMessage(message: LobbyMessage): void {
     const payload: MetaMessage = message.message;
 
     if (payload.result == 'success') {
-      this.statusField.html("Connected");
+      // Connected successfully!
+      $.get("/rc/joined").then((page) => {
+        let display = new RemoteControlDisplay($(page));
+        display.initialize(this.lobby);
+        $("main").replaceWith(display.page);
+      });
     } else {
       alert(`Error connecting: ${payload.error}`);
     }
@@ -47,7 +55,7 @@ async function pingWithCode(): Promise<void> {
       throw new PingError(`There is no lobby with code ${code.toUpperCase()}`);
     }
     lobby.addListener(new DebugLobbyListener());
-    lobby.dispatcher.addListener(new ConnectStatusUpdater($("#connection-status")));
+    lobby.dispatcher.addListener(new ConnectStatusUpdater($("#connection-status"), lobby));
   } catch (e) {
     if (e instanceof PingError) {
       alert(e.message);

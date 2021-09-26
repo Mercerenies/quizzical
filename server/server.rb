@@ -57,6 +57,10 @@ get '/connect' do
   erb :connect
 end
 
+get '/rc/joined' do
+  erb :joined, layout: false
+end
+
 get '/listen' do
   content_type 'application/json'
   code = $lobbies.start_new_lobby(UUID.get(session))
