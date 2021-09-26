@@ -1,6 +1,9 @@
 <main>
   <input type="text" id="code" style="text-transform: uppercase" maxlength="4"></input>
   <button id="submit">Join Game</button>
+  <div>
+    Status: <span id="connection-status"></span>
+  </div>
   <script type="module">
    import { setupConnectPage } from '/main.js';
    $(setupConnectPage);

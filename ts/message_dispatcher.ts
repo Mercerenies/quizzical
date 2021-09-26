@@ -18,7 +18,8 @@ export class MessageDispatcher extends AbstractLobbyListener {
     });
   }
 
-  addListener(messageType: string, listener: MessageListener): void {
+  addListener(listener: MessageListener): void {
+    const messageType = listener.messageType;
     let listenerList = this.listeners.get(messageType);
     if (listenerList === undefined) {
       listenerList = [];
@@ -27,7 +28,8 @@ export class MessageDispatcher extends AbstractLobbyListener {
     listenerList.push(listener);
   }
 
-  removeListener(messageType: string, listener: MessageListener): boolean {
+  removeListener(listener: MessageListener): boolean {
+    const messageType = listener.messageType;
     const listenerList = (this.listeners.get(messageType) ?? []);
     const index = listenerList.findIndex(function(x) { return x == listener; });
     if (index >= 0) {
@@ -41,11 +43,13 @@ export class MessageDispatcher extends AbstractLobbyListener {
 }
 
 export interface MessageListener {
+  readonly messageType: string;
   onMessage(message: LobbyMessage): void;
 }
 
-export function MessageListener(func: (message: LobbyMessage) => void): MessageListener {
+export function MessageListener(messageType: string, func: (message: LobbyMessage) => void): MessageListener {
   return {
+    messageType: messageType,
     onMessage: func,
   };
 }

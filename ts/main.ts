@@ -1,11 +1,14 @@
 
 import { SSE, DirectMessage } from './sse.js';
 import { PlayerUUID } from './uuid.js';
-import { RTC_CONFIG, LOBBY_MESSAGE_TYPE, hostLobby, joinLobby,
+import { RTC_CONFIG, LOBBY_MESSAGE_TYPE, META_MESSAGE_TYPE,
+         MetaMessage,
+         hostLobby, joinLobby,
          HostLobby } from './lobby.js';
 import { LobbyListener, AbstractLobbyListener, LobbyMessage } from './lobby/listener.js';
+import { MessageListener } from './message_dispatcher.js';
 
-const DEFAULT_MAX_PLAYERS = 1;
+const DEFAULT_MAX_PLAYERS = 4;
 
 class DebugLobbyListener implements LobbyListener {
 
@@ -65,6 +68,26 @@ class PlayerListUpdater extends AbstractLobbyListener {
 
 }
 
+class ConnectStatusUpdater implements MessageListener {
+  readonly messageType: string = META_MESSAGE_TYPE;
+  private statusField: JQuery<HTMLElement>;
+
+  constructor(statusField: JQuery<HTMLElement>) {
+    this.statusField = statusField;
+  }
+
+  onMessage(message: LobbyMessage): void {
+    const payload: MetaMessage = message.message;
+
+    if (payload.result == 'success') {
+      this.statusField.html("Connected");
+    } else {
+      alert(`Error connecting: ${payload.error}`);
+    }
+  }
+
+}
+
 export async function setupNewGame(): Promise<void> {
   const lobby = await hostLobby(DEFAULT_MAX_PLAYERS);
   const updater = new PlayerListUpdater(lobby, $("#player-list"));
@@ -83,10 +106,12 @@ export async function pingWithCode(): Promise<void> {
   }
   const lobby = await joinLobby(code.toUpperCase());
   lobby.addListener(new DebugLobbyListener());
+  lobby.dispatcher.addListener(new ConnectStatusUpdater($("#connection-status")));
 }
 
 export function setupConnectPage(): void {
   $("#submit").click(pingWithCode);
+  $("#connection-status").html("Not connected");
 }
 
 $(function() {
