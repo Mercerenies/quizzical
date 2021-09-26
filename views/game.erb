@@ -1,17 +1,29 @@
 <main>
   <div class="container">
+
     <div class="row">
       <div class="col-md-12">
         I am now hosting a session at <strong id="code">????</strong>.
       </div>
-      <div class="row">
-        <div class="col-md-12">
-          <h1>Players</h1>
-          <ul id="player-list" class="list-group">
-          </ul>
-        </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <h1>Players</h1>
+        <ul id="player-list" class="list-group">
+        </ul>
       </div>
     </div>
+
+    <div class="form-row">
+      <div class="form-group col-md-8">
+        <input type="text" id="info-message" class="form-control" placeholder="Informational Message"></input>
+      </div>
+      <div class="form-group col-md-4">
+        <button id="send-info-message" class="btn">Send Info Message</button>
+      </div>
+    </div>
+
     <script type="module">
      import { setupNewGame } from '/main.js';
      $(setupNewGame)
