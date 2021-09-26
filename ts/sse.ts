@@ -26,7 +26,7 @@ export class SSE {
   }
 
   removeListener(messageType: string, listener: SSEListener): boolean {
-    const listenerList = (this.listeners.get(messageType) || []);
+    const listenerList = (this.listeners.get(messageType) ?? []);
     const index = listenerList.findIndex(function(x) { return x == listener; });
     if (index >= 0) {
       listenerList.splice(index, 1);
@@ -37,7 +37,7 @@ export class SSE {
   }
 
   private onMessage(data: IncomingMessage): void {
-    (this.listeners.get(data.messageType) || []).forEach(function(listener) { listener(data) });
+    (this.listeners.get(data.messageType) ?? []).forEach(function(listener) { listener(data) });
   }
 
   async sendMessage(message: OutgoingMessage): Promise<void> {

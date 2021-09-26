@@ -3,13 +3,13 @@ import { SSE, DirectMessage } from './sse.js';
 import { PlayerUUID } from './uuid.js';
 import { RTC_CONFIG, LOBBY_MESSAGE_TYPE, hostLobby, joinLobby,
          LobbyListener, AbstractLobbyListener,
-         HostLobby } from './lobby.js';
+         HostLobby, LobbyMessage } from './lobby.js';
 
 const DEFAULT_MAX_PLAYERS = 1;
 
 class DebugLobbyListener implements LobbyListener {
 
-  onMessage(message: any, source: PlayerUUID): void {}
+  onMessage(message: LobbyMessage): void {}
 
   onConnect(player: PlayerUUID): void {
     console.log(`New player ${player} joined`);

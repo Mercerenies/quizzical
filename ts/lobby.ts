@@ -188,8 +188,14 @@ export class HostLobby extends Lobby {
     }
   }
 
-  private onMessage(source: PlayerUUID, message: any): void {
-    this.dispatchOnListeners((listener) => listener.onMessage(message, source));
+  private onMessage(source: PlayerUUID, message: LobbyMessage): void {
+    // Ensure that the source attribute is correct.
+    let newMessage = {
+      source: source,
+      messageType: message.messageType,
+      message: message.message,
+    };
+    this.dispatchOnListeners((listener) => listener.onMessage(newMessage));
   }
 
   sendMessageTo(target: PlayerUUID, message: LobbyMessage): void {
@@ -244,8 +250,14 @@ export class GuestLobby extends Lobby {
     }
   }
 
-  private onMessage(message: any): void {
-    this.dispatchOnListeners((listener) => listener.onMessage(message, this.hostId));
+  private onMessage(message: LobbyMessage): void {
+    // Ensure that the source attribute is correct.
+    let newMessage = {
+      source: this.hostId,
+      messageType: message.messageType,
+      message: message.message,
+    };
+    this.dispatchOnListeners((listener) => listener.onMessage(newMessage));
   }
 
   sendMessageTo(target: PlayerUUID, message: LobbyMessage): void {
@@ -264,7 +276,7 @@ export class GuestLobby extends Lobby {
 export interface LobbyListener {
 
   // This event fires on all lobby types
-  onMessage(message: LobbyMessage, source: PlayerUUID): void;
+  onMessage(message: LobbyMessage): void;
   onConnect(player: PlayerUUID): void;
 
   // These events only fire for the host of the lobby
@@ -274,7 +286,7 @@ export interface LobbyListener {
 }
 
 export class AbstractLobbyListener implements LobbyListener {
-  onMessage(message: LobbyMessage, source: PlayerUUID): void {}
+  onMessage(message: LobbyMessage): void {}
   onConnect(player: PlayerUUID): void {}
   onDisconnect(player: PlayerUUID): void {}
   onReconnect(player: PlayerUUID): void {}
