@@ -3,7 +3,7 @@ import { MessageListener } from './message_dispatcher.js';
 import { DebugLobbyListener } from './debug_lobby_listener.js';
 import { LobbyMessage } from './lobby/listener.js';
 import { META_MESSAGE_TYPE, GuestLobby, joinLobby, MetaMessage } from './lobby.js';
-import { RemoteControlDisplay } from './remote_control.js';
+import { RemoteControlListener } from './remote_control.js';
 
 class ConnectStatusUpdater implements MessageListener {
   readonly messageType: string = META_MESSAGE_TYPE;
@@ -17,15 +17,7 @@ class ConnectStatusUpdater implements MessageListener {
 
   onMessage(message: LobbyMessage): void {
     const payload: MetaMessage = message.message;
-
-    if (payload.result == 'success') {
-      // Connected successfully!
-      $.get("/rc/joined").then((page) => {
-        let display = new RemoteControlDisplay($(page));
-        display.initialize(this.lobby);
-        $("main").replaceWith(display.page);
-      });
-    } else {
+    if (payload.result == 'error') {
       alert(`Error connecting: ${payload.error}`);
     }
   }
@@ -55,8 +47,7 @@ async function pingWithCode(): Promise<void> {
     if (lobby === undefined) {
       throw new PingError(`There is no lobby with code ${code.toUpperCase()}`);
     }
-    lobby.addListener(new DebugLobbyListener());
-    lobby.dispatcher.addListener(new ConnectStatusUpdater($("#connection-status"), lobby));
+    initListeners(lobby);
   } catch (e) {
     if (e instanceof PingError) {
       alert(e.message);
@@ -64,6 +55,12 @@ async function pingWithCode(): Promise<void> {
       throw e;
     }
   }
+}
+
+function initListeners(lobby: GuestLobby): void {
+  lobby.addListener(new DebugLobbyListener());
+  lobby.dispatcher.addListener(new ConnectStatusUpdater($("#connection-status"), lobby));
+  lobby.dispatcher.addListener(new RemoteControlListener(lobby));
 }
 
 export function setupConnectPage(): void {

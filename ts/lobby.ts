@@ -4,6 +4,7 @@ import { PlayerUUID, PeerUUID } from './uuid.js';
 import { MessageDispatcher } from './message_dispatcher.js';
 import { LobbyListener, LobbyMessage } from './lobby/listener.js';
 import { ConnectedPlayer } from './lobby/connected_player.js';
+import { RemoteControlMessage, REMOTE_CONTROL_MESSAGE_TYPE } from './remote_control.js';
 
 export const RTC_CONFIG = {'iceServers': [{'urls': 'stun:stun.l.google.com:19302'}]};
 
@@ -178,7 +179,12 @@ export class HostLobby extends Lobby {
       } else {
         this.dispatchOnListeners((listener) => listener.onConnect(uuid));
       }
+
       conn.send(this.newMessage(META_MESSAGE_TYPE, new MetaMessage('success', LobbyErrorCode.OK)));
+
+      const joinedDisplay: RemoteControlMessage = { rcType: "joined", rcParams: {} };
+      conn.send(this.newMessage(REMOTE_CONTROL_MESSAGE_TYPE, joinedDisplay));
+
     }, 0);
 
   }
