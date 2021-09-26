@@ -60,4 +60,9 @@ async function pingWithCode(): Promise<void> {
 export function setupConnectPage(): void {
   $("#submit").click(pingWithCode);
   $("#connection-status").html("Not connected");
+  $("#code").keypress(function(e) {
+    if(e.which == 13) {
+      $("#submit").trigger('click');
+    }
+  });
 }
