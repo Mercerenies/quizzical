@@ -6,7 +6,7 @@ export const RTC_CONFIG = {'iceServers': [{'urls': 'stun:stun.l.google.com:19302
 
 export const LOBBY_MESSAGE_TYPE = "Lobby.LOBBY_MESSAGE_TYPE";
 export const ICE_MESSAGE_TYPE = "Lobby.ICE_MESSAGE_TYPE";
-export const META_ERROR_MESSAGE_TYPE = "Lobby.META_ERROR_MESSAGE_TYPE";
+export const META_MESSAGE_TYPE = "Lobby.META_MESSAGE_TYPE";
 
 export const DATA_CHANNEL_LABEL = "Lobby.DATA_CHANNEL_LABEL";
 
@@ -32,6 +32,14 @@ export abstract class Lobby {
 
   get peerId(): PeerUUID {
     return this.peer.id as PeerUUID;
+  }
+
+  newMessage(messageType: string, payload: any): LobbyMessage {
+    return {
+      source: this.selfId,
+      messageType: messageType,
+      message: payload,
+    };
   }
 
   abstract sendMessageTo(target: PlayerUUID, message: LobbyMessage): void;
@@ -136,7 +144,7 @@ export class HostLobby extends Lobby {
     // Make sure we have room for the player
     if (!this.canPlayerJoin(uuid)) {
       console.log("Blocking connection (not enough room)");
-      conn.send({ type: META_ERROR_MESSAGE_TYPE, error: LobbyErrorCode.TOO_MANY_PLAYERS }); ////
+      conn.send(this.newMessage(META_MESSAGE_TYPE, { result: 'error', error: LobbyErrorCode.TOO_MANY_PLAYERS }));
       conn.close();
     }
 
