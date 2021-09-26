@@ -1,5 +1,5 @@
 *~
 db/
-public/*.js
+public/**/*.js
 node_modules/
 build-cache/
