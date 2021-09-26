@@ -50,7 +50,7 @@ class PlayerListUpdater extends AbstractLobbyListener {
   update(): void {
     this.playerList.empty();
     const players = [...this.lobby.players()];
-    for (let index = 0; index < this.lobby.maxPlayers; index++) {
+    for (let index = 0; index < this.lobby.maxPlayers(); index++) {
       let child: JQuery<HTMLElement>;
       if (index < players.length) {
         child = $(`<li>${players[index]}</li>`);
@@ -71,7 +71,7 @@ export async function setupNewGame(): Promise<void> {
   lobby.addListener(updater);
 
   updater.update();
-  $("#code").text(lobby.code);
+  $("#code").text(lobby.getCode());
 }
 
 export async function pingWithCode(): Promise<void> {

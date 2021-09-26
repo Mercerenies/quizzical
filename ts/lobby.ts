@@ -16,29 +16,42 @@ export enum LobbyErrorCode {
 
 export const PEER_DEBUG_LEVEL = 2;
 
-export interface Lobby {
-  readonly code: string;
+export abstract class Lobby {
+  private code: string;
+  private listeners: LobbyListener[];
 
-  getPeerId(): PeerUUID;
-  getHostId(): PlayerUUID;
-  getSelfId(): PlayerUUID;
+  constructor(code: string) {
+    this.code = code;
+    this.listeners = [];
+  }
 
-  sendMessageTo(target: PlayerUUID, message: LobbyMessage): void;
+  getCode(): string {
+    return this.code;
+  }
 
-  addListener(listener: LobbyListener): void;
-  removeListener(listener: LobbyListener): boolean;
+  abstract getPeerId(): PeerUUID;
+  abstract getHostId(): PlayerUUID;
+  abstract getSelfId(): PlayerUUID;
 
-}
+  abstract sendMessageTo(target: PlayerUUID, message: LobbyMessage): void;
 
-export interface HostLobby extends Lobby {
-  readonly maxPlayers: number;
+  addListener(listener: LobbyListener): void {
+    this.listeners.push(listener);
+  }
 
-  peerExists(uuid: PlayerUUID): boolean | "disconnected";
+  removeListener(listener: LobbyListener): boolean {
+    let index = this.listeners.findIndex(function(x) { return x == listener; });
+    if (index >= 0) {
+      this.listeners.splice(index, 1);
+      return true;
+    } else {
+      return false;
+    }
+  }
 
-  players(): Iterable<PlayerUUID>;
-
-  hasGameStarted(): boolean;
-  startGame(): void;
+  protected dispatchOnListeners(func: (listener: LobbyListener) => void): void {
+    this.listeners.forEach(func);
+  }
 
 }
 
@@ -48,22 +61,19 @@ export interface LobbyMessage {
   readonly message: any;
 }
 
-class LobbyAsHost implements HostLobby {
-  readonly code: string;
-  readonly maxPlayers: number;
+export class HostLobby extends Lobby {
+  private maxPlayersCount: number;
   private peer: Peer;
   private connections: Map<PlayerUUID, DataConnection | null>;
   private host: PlayerUUID;
-  private listeners: LobbyListener[];
   private gameStarted: boolean;
 
   constructor(code: string, maxPlayers: number, host: PlayerUUID) {
-    this.code = code;
+    super(code);
     this.peer = new Peer(undefined, { debug: PEER_DEBUG_LEVEL });
     this.connections = new Map();
     this.host = host;
-    this.listeners = [];
-    this.maxPlayers = maxPlayers;
+    this.maxPlayersCount = maxPlayers;
     this.gameStarted = false;
 
     SSE.get().addListener(LOBBY_MESSAGE_TYPE, (message) => this.handleMessage(message));
@@ -95,6 +105,10 @@ class LobbyAsHost implements HostLobby {
     return [...this.players()].length
   }
 
+  maxPlayers(): number {
+    return this.maxPlayersCount;
+  }
+
   hasGameStarted(): boolean {
     return this.gameStarted;
   }
@@ -122,7 +136,7 @@ class LobbyAsHost implements HostLobby {
       // The player had already connected at some point before. This
       // is a reconnect, so allow it.
       return true;
-    } else if ((this.playerCount() < this.maxPlayers) && (!this.hasGameStarted())) {
+    } else if ((this.playerCount() < this.maxPlayers()) && (!this.hasGameStarted())) {
       // There's room for a new player and the game hasn't started
       // yet, so allow it. (TODO Some games might allow late arrivals?)
       return true;
@@ -148,9 +162,9 @@ class LobbyAsHost implements HostLobby {
     conn.on('close', () => this.onConnectionClosed(conn));
 
     if (isReconnect) {
-      this.listeners.forEach((listener) => listener.onReconnect(uuid));
+      this.dispatchOnListeners((listener) => listener.onReconnect(uuid));
     } else {
-      this.listeners.forEach((listener) => listener.onConnect(uuid));
+      this.dispatchOnListeners((listener) => listener.onConnect(uuid));
     }
 
   }
@@ -165,7 +179,7 @@ class LobbyAsHost implements HostLobby {
       // Remove them from the system
       this.connections.delete(uuid);
     }
-    this.listeners.forEach((listener) => listener.onDisconnect(uuid));
+    this.dispatchOnListeners((listener) => listener.onDisconnect(uuid));
   }
 
   private async handleMessage(message: IncomingMessage): Promise<void> {
@@ -178,7 +192,7 @@ class LobbyAsHost implements HostLobby {
   }
 
   private onMessage(source: PlayerUUID, message: any): void {
-    this.listeners.forEach((listener) => listener.onMessage(message, source));
+    this.dispatchOnListeners((listener) => listener.onMessage(message, source));
   }
 
   sendMessageTo(target: PlayerUUID, message: LobbyMessage): void {
@@ -195,37 +209,20 @@ class LobbyAsHost implements HostLobby {
     conn.send(message);
   }
 
-  addListener(listener: LobbyListener): void {
-    this.listeners.push(listener);
-  }
-
-  removeListener(listener: LobbyListener): boolean {
-    let index = this.listeners.findIndex(function(x) { return x == listener; });
-    if (index >= 0) {
-      this.listeners.splice(index, 1);
-      return true;
-    } else {
-      return false;
-    }
-  }
-
 }
 
-class LobbyAsGuest implements Lobby {
-  readonly code: string;
+export class GuestLobby extends Lobby {
   private host: PlayerUUID;
   private selfId: PlayerUUID;
   private peer: Peer;
   private conn: DataConnection | undefined;
-  private listeners: LobbyListener[];
 
   constructor(code: string, host: PlayerUUID, selfId: PlayerUUID) {
-    this.code = code;
+    super(code);
     this.host = host;
     this.selfId = selfId;
     this.peer = new Peer(undefined, { debug: PEER_DEBUG_LEVEL });
     this.conn = undefined;
-    this.listeners = [];
 
     SSE.get().addListener(LOBBY_MESSAGE_TYPE, (message) => this.handleMessage(message));
     this.peer.on("open", async () => await this.tryToConnect());
@@ -260,14 +257,14 @@ class LobbyAsGuest implements Lobby {
           console.log("Got connection");
           this.conn = conn;
           conn.on('data', (data) => this.onMessage(data));
-          this.listeners.forEach((listener) => listener.onConnect(this.getHostId()));
+          this.dispatchOnListeners((listener) => listener.onConnect(this.getHostId()));
         });
         break;
     }
   }
 
   private onMessage(message: any): void {
-    this.listeners.forEach((listener) => listener.onMessage(message, this.host));
+    this.dispatchOnListeners((listener) => listener.onMessage(message, this.host));
   }
 
   sendMessageTo(target: PlayerUUID, message: LobbyMessage): void {
@@ -279,20 +276,6 @@ class LobbyAsGuest implements Lobby {
       throw "Attempt to send message before connection is established";
     }
     this.conn.send(message);
-  }
-
-  addListener(listener: LobbyListener): void {
-    this.listeners.push(listener);
-  }
-
-  removeListener(listener: LobbyListener): boolean {
-    let index = this.listeners.findIndex(function(x) { return x == listener; });
-    if (index >= 0) {
-      this.listeners.splice(index, 1);
-      return true;
-    } else {
-      return false;
-    }
   }
 
 }
@@ -320,15 +303,15 @@ export async function hostLobby(maxPlayers: number): Promise<HostLobby> {
   const listenResult = await $.get('/listen');
   const host = await $.get('/whoami');
   const code = listenResult.code;
-  const lobby = new LobbyAsHost(code, maxPlayers, host);
+  const lobby = new HostLobby(code, maxPlayers, host);
 
   return lobby;
 }
 
-export async function joinLobby(code: string): Promise<Lobby> {
+export async function joinLobby(code: string): Promise<GuestLobby> {
   const pingResult = await $.get(`/ping?code=${code}`);
   const selfId = await $.get('/whoami');
-  const lobby = new LobbyAsGuest(code, pingResult.target, selfId);
+  const lobby = new GuestLobby(code, pingResult.target, selfId);
 
   return lobby;
 }
