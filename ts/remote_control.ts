@@ -13,6 +13,7 @@ export class RemoteControlDisplay {
 
   // Set up the parameters on the page from the lobby.
   initialize(lobby: GuestLobby) {
+    this.page.find("#player-name").text(lobby.playerName);
     this.page.find("#game-code").text(lobby.code);
   }
 
