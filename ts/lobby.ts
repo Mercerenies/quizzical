@@ -2,6 +2,7 @@
 import { SSE, DirectMessage, IncomingMessage } from './sse.js';
 import { PlayerUUID, PeerUUID } from './uuid.js';
 import { MessageDispatcher } from './message_dispatcher.js';
+import { LobbyListener, LobbyMessage } from './lobby/listener.js';
 
 export const RTC_CONFIG = {'iceServers': [{'urls': 'stun:stun.l.google.com:19302'}]};
 
@@ -12,6 +13,7 @@ export const META_MESSAGE_TYPE = "Lobby.META_MESSAGE_TYPE";
 export const DATA_CHANNEL_LABEL = "Lobby.DATA_CHANNEL_LABEL";
 
 export enum LobbyErrorCode {
+  OK = "OK",
   TOO_MANY_PLAYERS = "TOO_MANY_PLAYERS",
 }
 
@@ -66,12 +68,6 @@ export abstract class Lobby {
     this.listeners.forEach(func);
   }
 
-}
-
-export interface LobbyMessage {
-  readonly source: PlayerUUID;
-  readonly messageType: string;
-  readonly message: any;
 }
 
 export class HostLobby extends Lobby {
@@ -148,7 +144,7 @@ export class HostLobby extends Lobby {
     // Make sure we have room for the player
     if (!this.canPlayerJoin(uuid)) {
       console.log("Blocking connection (not enough room)");
-      conn.send(this.newMessage(META_MESSAGE_TYPE, { result: 'error', error: LobbyErrorCode.TOO_MANY_PLAYERS }));
+      conn.send(this.newMessage(META_MESSAGE_TYPE, new MetaMessage('error', LobbyErrorCode.TOO_MANY_PLAYERS)));
       conn.close();
     }
 
@@ -158,11 +154,15 @@ export class HostLobby extends Lobby {
     conn.on('data', (data) => this.onMessage(uuid, data));
     conn.on('close', () => this.onConnectionClosed(conn));
 
-    if (isReconnect) {
-      this.dispatchOnListeners((listener) => listener.onReconnect(uuid));
-    } else {
-      this.dispatchOnListeners((listener) => listener.onConnect(uuid));
-    }
+    // Give the other side a second to set up comms
+    window.setTimeout(() => {
+      if (isReconnect) {
+        this.dispatchOnListeners((listener) => listener.onReconnect(uuid));
+      } else {
+        this.dispatchOnListeners((listener) => listener.onConnect(uuid));
+      }
+      conn.send(this.newMessage(META_MESSAGE_TYPE, new MetaMessage('success', LobbyErrorCode.OK)));
+    }, 0);
 
   }
 
@@ -224,7 +224,7 @@ export class GuestLobby extends Lobby {
     this.selfId = selfId;
 
     SSE.get().addListener(LOBBY_MESSAGE_TYPE, (message) => this.handleMessage(message));
-    this.peer.on("open", async () => await this.tryToConnect());
+    this.peer.on('open', async () => await this.tryToConnect());
 
   }
 
@@ -273,23 +273,16 @@ export class GuestLobby extends Lobby {
 
 }
 
-export interface LobbyListener {
+// The type of LobbyMessages with messageType META_MESSAGE_TYPE.
+export class MetaMessage {
+  result: 'success' | 'error';
+  error: LobbyErrorCode;
 
-  // This event fires on all lobby types
-  onMessage(message: LobbyMessage): void;
-  onConnect(player: PlayerUUID): void;
+  constructor(result: 'success' | 'error', error: LobbyErrorCode) {
+    this.result = result;
+    this.error = error;
+  }
 
-  // These events only fire for the host of the lobby
-  onDisconnect(player: PlayerUUID): void;
-  onReconnect(player: PlayerUUID): void;
-
-}
-
-export class AbstractLobbyListener implements LobbyListener {
-  onMessage(message: LobbyMessage): void {}
-  onConnect(player: PlayerUUID): void {}
-  onDisconnect(player: PlayerUUID): void {}
-  onReconnect(player: PlayerUUID): void {}
 }
 
 export async function hostLobby(maxPlayers: number): Promise<HostLobby> {

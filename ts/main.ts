@@ -2,14 +2,16 @@
 import { SSE, DirectMessage } from './sse.js';
 import { PlayerUUID } from './uuid.js';
 import { RTC_CONFIG, LOBBY_MESSAGE_TYPE, hostLobby, joinLobby,
-         LobbyListener, AbstractLobbyListener,
-         HostLobby, LobbyMessage } from './lobby.js';
+         HostLobby } from './lobby.js';
+import { LobbyListener, AbstractLobbyListener, LobbyMessage } from './lobby/listener.js';
 
 const DEFAULT_MAX_PLAYERS = 1;
 
 class DebugLobbyListener implements LobbyListener {
 
-  onMessage(message: LobbyMessage): void {}
+  onMessage(message: LobbyMessage): void {
+    console.log("MESSAGE: " + message.message);
+  }
 
   onConnect(player: PlayerUUID): void {
     console.log(`New player ${player} joined`);
@@ -80,6 +82,7 @@ export async function pingWithCode(): Promise<void> {
     throw `Bad lobby code ${code}`;
   }
   const lobby = await joinLobby(code.toUpperCase());
+  lobby.addListener(new DebugLobbyListener());
 }
 
 export function setupConnectPage(): void {
