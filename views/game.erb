@@ -1,12 +1,16 @@
 <main>
   <div class="container">
-    <p>
-      I am now hosting a session at <span id="code">????</span>.
-    </p>
-    <div>
-      <p>Players</p>
-      <ul id="player-list">
-      </ul>
+    <div class="row">
+      <div class="col-md-12">
+        I am now hosting a session at <strong id="code">????</strong>.
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <h1>Players</h1>
+          <ul id="player-list" class="list-group">
+          </ul>
+        </div>
+      </div>
     </div>
     <script type="module">
      import { setupNewGame } from '/main.js';

@@ -35,9 +35,9 @@ class PlayerListUpdater extends AbstractLobbyListener {
     for (let index = 0; index < this.lobby.maxPlayers; index++) {
       let child: JQuery<HTMLElement>;
       if (index < players.length) {
-        child = $(`<li>${players[index].playerName}</li>`);
+        child = $(`<li class="list-group-item">${players[index].playerName}</li>`);
       } else {
-        child = $("<li>(Empty)</li>");
+        child = $('<li class="list-group-item">(Empty)</li>');
       }
       this.playerList.append(child);
     }
