@@ -1,6 +1,7 @@
 
 import { SSE, DirectMessage, IncomingMessage } from './sse.js';
 import { PlayerUUID, PeerUUID } from './uuid.js';
+import { MessageDispatcher } from './message_dispatcher.js';
 
 export const RTC_CONFIG = {'iceServers': [{'urls': 'stun:stun.l.google.com:19302'}]};
 
@@ -22,12 +23,15 @@ export abstract class Lobby {
   readonly hostId: PlayerUUID;
   abstract readonly selfId: PlayerUUID;
   private listeners: LobbyListener[];
+  readonly dispatcher: MessageDispatcher;
 
   constructor(code: string, host: PlayerUUID) {
     this.code = code;
     this.hostId = host;
     this.listeners = [];
+    this.dispatcher = new MessageDispatcher();
     this.peer = new Peer(undefined, { debug: PEER_DEBUG_LEVEL });
+    this.addListener(this.dispatcher);
   }
 
   get peerId(): PeerUUID {
