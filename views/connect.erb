@@ -1,11 +1,12 @@
 <main>
-  <input type="text" id="code" style="text-transform: uppercase" maxlength="4"></input>
-  <button id="submit">Join Game</button>
-  <div>
-    Status: <span id="connection-status"></span>
+    <input type="text" id="code" style="text-transform: uppercase" maxlength="4"></input>
+    <button id="submit">Join Game</button>
+    <div>
+      Status: <span id="connection-status"></span>
+    </div>
+    <script type="module">
+     import { setupConnectPage } from '/connect_page.js';
+     $(setupConnectPage);
+    </script>
   </div>
-  <script type="module">
-   import { setupConnectPage } from '/connect_page.js';
-   $(setupConnectPage);
-  </script>
 </main>
