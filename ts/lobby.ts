@@ -51,6 +51,7 @@ export abstract class Lobby {
   }
 
   abstract sendMessageTo(target: PlayerUUID, message: LobbyMessage): void;
+  abstract sendMessageToAll(message: LobbyMessage): void;
 
   addListener(listener: LobbyListener): void {
     this.listeners.push(listener);
@@ -238,6 +239,12 @@ export class HostLobby extends Lobby {
     player.conn.send(message);
   }
 
+  sendMessageToAll(message: LobbyMessage): void {
+    for (const player of this.players) {
+      this.sendMessageTo(player.uuid, message);
+    }
+  }
+
 }
 
 export class GuestLobby extends Lobby {
@@ -297,6 +304,10 @@ export class GuestLobby extends Lobby {
       throw "Attempt to send message before connection is established";
     }
     this.conn.send(message);
+  }
+
+  sendMessageToAll(message: LobbyMessage): void {
+    this.sendMessageTo(this.hostId, message);
   }
 
 }
