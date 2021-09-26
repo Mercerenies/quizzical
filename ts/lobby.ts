@@ -3,6 +3,7 @@ import { SSE, DirectMessage, IncomingMessage } from './sse.js';
 import { PlayerUUID, PeerUUID } from './uuid.js';
 import { MessageDispatcher } from './message_dispatcher.js';
 import { LobbyListener, LobbyMessage } from './lobby/listener.js';
+import { ConnectedPlayer } from './lobby/connected_player.js';
 
 export const RTC_CONFIG = {'iceServers': [{'urls': 'stun:stun.l.google.com:19302'}]};
 
@@ -72,7 +73,7 @@ export abstract class Lobby {
 
 export class HostLobby extends Lobby {
   readonly maxPlayers: number;
-  private connections: Map<PlayerUUID, DataConnection | null>;
+  private connections: Map<PlayerUUID, ConnectedPlayer | null>;
   private gameStarted: boolean;
 
   constructor(code: string, maxPlayers: number, host: PlayerUUID) {
@@ -156,7 +157,7 @@ export class HostLobby extends Lobby {
 
     const isReconnect = this.peerExists(uuid);
 
-    this.connections.set(uuid, conn);
+    this.connections.set(uuid, new ConnectedPlayer(uuid, conn));
     conn.on('data', (data) => this.onMessage(uuid, data));
     conn.on('close', () => this.onConnectionClosed(conn));
 
@@ -205,17 +206,17 @@ export class HostLobby extends Lobby {
   }
 
   sendMessageTo(target: PlayerUUID, message: LobbyMessage): void {
-    const conn = this.connections.get(target);
-    if (conn === undefined) {
+    const player = this.connections.get(target);
+    if (player === undefined) {
       // There is no one with that UUID, so it's an error.
       throw `Invalid message target ${target}`;
     }
-    if (conn === null) {
+    if (player === null) {
       // There is someone with that UUID, but they've disconnected.
       // Just suppress the message for now.
       return;
     }
-    conn.send(message);
+    player.conn.send(message);
   }
 
 }
