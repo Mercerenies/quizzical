@@ -31,11 +31,11 @@ class PlayerListUpdater extends AbstractLobbyListener {
 
   update(): void {
     this.playerList.empty();
-    const players = [...this.lobby.players];
+    const players = this.lobby.players;
     for (let index = 0; index < this.lobby.maxPlayers; index++) {
       let child: JQuery<HTMLElement>;
       if (index < players.length) {
-        child = $(`<li>${players[index]}</li>`);
+        child = $(`<li>${players[index].playerName}</li>`);
       } else {
         child = $("<li>(Empty)</li>");
       }

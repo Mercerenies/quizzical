@@ -16,6 +16,7 @@ export const DATA_CHANNEL_LABEL = "Lobby.DATA_CHANNEL_LABEL";
 export enum LobbyErrorCode {
   OK = "OK",
   TOO_MANY_PLAYERS = "TOO_MANY_PLAYERS",
+  INVALID_NAME = "INVALID_NAME",
 }
 
 export const PEER_DEBUG_LEVEL = 2;
@@ -95,8 +96,14 @@ export class HostLobby extends Lobby {
     return this.hostId;
   }
 
-  get players(): Iterable<PlayerUUID> {
-    return this.connections.keys();
+  get players(): ConnectedPlayer[] {
+    const players = [];
+    for (const playerInfo of this.connections.values()) {
+      if (playerInfo !== null) {
+        players.push(playerInfo);
+      }
+    }
+    return players;
   }
 
   get playerCount(): number {
@@ -140,24 +147,26 @@ export class HostLobby extends Lobby {
   }
 
   private onConnection(conn: DataConnection): void {
-    const uuid: PlayerUUID = conn.metadata.uuid;
+    const metadata: InitMetadata = conn.metadata;
+    const uuid: PlayerUUID = metadata.uuid;
+
+    // Validate the player's parameters
+    if ((metadata.playerName.length < 1) || (metadata.playerName.length > 15)) {
+      console.log("Player attempted to join with invalid name (blocking)");
+      this.destroyConnectionWithError(conn, LobbyErrorCode.INVALID_NAME);
+      return;
+    }
 
     // Make sure we have room for the player
     if (!this.canPlayerJoin(uuid)) {
       console.log("Blocking connection (not enough room)");
-      // Give the other side a second to set up comms
-      window.setTimeout(() => {
-        conn.send(this.newMessage(META_MESSAGE_TYPE, new MetaMessage('error', LobbyErrorCode.TOO_MANY_PLAYERS)));
-        window.setTimeout(() => {
-          conn.close();
-        }, 0);
-      }, 0);
+      this.destroyConnectionWithError(conn, LobbyErrorCode.TOO_MANY_PLAYERS);
       return;
     }
 
     const isReconnect = this.peerExists(uuid);
 
-    this.connections.set(uuid, new ConnectedPlayer(uuid, conn));
+    this.connections.set(uuid, new ConnectedPlayer(uuid, metadata.playerName, conn));
     conn.on('data', (data) => this.onMessage(uuid, data));
     conn.on('close', () => this.onConnectionClosed(conn));
 
@@ -171,6 +180,16 @@ export class HostLobby extends Lobby {
       conn.send(this.newMessage(META_MESSAGE_TYPE, new MetaMessage('success', LobbyErrorCode.OK)));
     }, 0);
 
+  }
+
+  private destroyConnectionWithError(conn: DataConnection, error: LobbyErrorCode) {
+    // Give the other side a second to set up comms
+    window.setTimeout(() => {
+      conn.send(this.newMessage(META_MESSAGE_TYPE, new MetaMessage('error', error)));
+      window.setTimeout(() => {
+        conn.close();
+      }, 0);
+    }, 0);
   }
 
   private onConnectionClosed(conn: DataConnection): void {
@@ -224,11 +243,13 @@ export class HostLobby extends Lobby {
 export class GuestLobby extends Lobby {
   readonly selfId: PlayerUUID;
   private conn: DataConnection | undefined;
+  readonly playerName: string;
 
-  constructor(code: string, host: PlayerUUID, selfId: PlayerUUID) {
+  constructor(code: string, host: PlayerUUID, selfId: PlayerUUID, playerName: string) {
     super(code, host);
     this.conn = undefined;
     this.selfId = selfId;
+    this.playerName = playerName;
 
     SSE.get().addListener(LOBBY_MESSAGE_TYPE, (message) => this.handleMessage(message));
     this.peer.on('open', async () => await this.tryToConnect());
@@ -245,7 +266,7 @@ export class GuestLobby extends Lobby {
         const selfId = this.selfId;
         const peerId = message.message.id;
         console.log("Got peer ID " + peerId);
-        const metadata = { uuid: selfId };
+        const metadata: InitMetadata = { uuid: selfId, playerName: this.playerName };
         const conn = this.peer.connect(peerId, { metadata: metadata });
         conn.on('open', () => {
           console.log("Got connection");
@@ -292,6 +313,12 @@ export class MetaMessage {
 
 }
 
+// The initial metadata sent when establishing a peerjs connection.
+export interface InitMetadata {
+  uuid: PlayerUUID,
+  playerName: string,
+}
+
 export async function hostLobby(maxPlayers: number): Promise<HostLobby> {
   const listenResult = await $.get('/listen');
   const host = await $.get('/whoami');
@@ -301,14 +328,14 @@ export async function hostLobby(maxPlayers: number): Promise<HostLobby> {
   return lobby;
 }
 
-export async function joinLobby(code: string): Promise<GuestLobby | undefined> {
+export async function joinLobby(code: string, playerName: string): Promise<GuestLobby | undefined> {
   const target = await tryPing(code);
   if (target === undefined) {
     return undefined;
   }
 
   const selfId = await $.get('/whoami');
-  const lobby = new GuestLobby(code, target, selfId);
+  const lobby = new GuestLobby(code, target, selfId, playerName);
 
   return lobby;
 }

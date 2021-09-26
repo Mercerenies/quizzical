@@ -43,14 +43,15 @@ class PingError {
 
 async function pingWithCode(): Promise<void> {
   try {
-    const code = $("#code").val();
-    if (!(typeof(code) === 'string')) {
-      throw new PingError(`Malformed lobby code ${code}`);
-    }
+    const code = $("#code").val() as string;
+    const playerName = $("#player-name").val() as string;
     if (code.length != 4) {
       throw new PingError(`Malformed lobby code ${code.toUpperCase()}`);
     }
-    const lobby = await joinLobby(code.toUpperCase());
+    if (playerName.length < 1) {
+      throw new PingError("Please enter your name");
+    }
+    const lobby = await joinLobby(code.toUpperCase(), playerName);
     if (lobby === undefined) {
       throw new PingError(`There is no lobby with code ${code.toUpperCase()}`);
     }
@@ -68,7 +69,7 @@ async function pingWithCode(): Promise<void> {
 export function setupConnectPage(): void {
   $("#submit").click(pingWithCode);
   $("#connection-status").html("Not connected");
-  $("#code").keypress(function(e) {
+  $("#code, #player-name").keypress(function(e) {
     if(e.which == 13) {
       $("#submit").trigger('click');
     }
