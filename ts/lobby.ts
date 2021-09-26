@@ -144,8 +144,14 @@ export class HostLobby extends Lobby {
     // Make sure we have room for the player
     if (!this.canPlayerJoin(uuid)) {
       console.log("Blocking connection (not enough room)");
-      conn.send(this.newMessage(META_MESSAGE_TYPE, new MetaMessage('error', LobbyErrorCode.TOO_MANY_PLAYERS)));
-      conn.close();
+      // Give the other side a second to set up comms
+      window.setTimeout(() => {
+        conn.send(this.newMessage(META_MESSAGE_TYPE, new MetaMessage('error', LobbyErrorCode.TOO_MANY_PLAYERS)));
+        window.setTimeout(() => {
+          conn.close();
+        }, 0);
+      }, 0);
+      return;
     }
 
     const isReconnect = this.peerExists(uuid);

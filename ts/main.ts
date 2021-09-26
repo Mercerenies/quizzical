@@ -10,7 +10,7 @@ const DEFAULT_MAX_PLAYERS = 1;
 class DebugLobbyListener implements LobbyListener {
 
   onMessage(message: LobbyMessage): void {
-    console.log("MESSAGE: " + message.message);
+    console.log("MESSAGE: " + JSON.stringify(message.message));
   }
 
   onConnect(player: PlayerUUID): void {
