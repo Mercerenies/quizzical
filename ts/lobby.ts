@@ -17,21 +17,22 @@ export enum LobbyErrorCode {
 export const PEER_DEBUG_LEVEL = 2;
 
 export abstract class Lobby {
-  private code: string;
+  protected peer: Peer;
+  readonly code: string;
+  readonly hostId: PlayerUUID;
+  abstract readonly selfId: PlayerUUID;
   private listeners: LobbyListener[];
 
-  constructor(code: string) {
+  constructor(code: string, host: PlayerUUID) {
     this.code = code;
+    this.hostId = host;
     this.listeners = [];
+    this.peer = new Peer(undefined, { debug: PEER_DEBUG_LEVEL });
   }
 
-  getCode(): string {
-    return this.code;
+  get peerId(): PeerUUID {
+    return this.peer.id as PeerUUID;
   }
-
-  abstract getPeerId(): PeerUUID;
-  abstract getHostId(): PlayerUUID;
-  abstract getSelfId(): PlayerUUID;
 
   abstract sendMessageTo(target: PlayerUUID, message: LobbyMessage): void;
 
@@ -62,51 +63,35 @@ export interface LobbyMessage {
 }
 
 export class HostLobby extends Lobby {
-  private maxPlayersCount: number;
-  private peer: Peer;
+  readonly maxPlayers: number;
   private connections: Map<PlayerUUID, DataConnection | null>;
-  private host: PlayerUUID;
   private gameStarted: boolean;
 
   constructor(code: string, maxPlayers: number, host: PlayerUUID) {
-    super(code);
-    this.peer = new Peer(undefined, { debug: PEER_DEBUG_LEVEL });
+    super(code, host);
     this.connections = new Map();
-    this.host = host;
-    this.maxPlayersCount = maxPlayers;
+    this.maxPlayers = maxPlayers;
     this.gameStarted = false;
 
     SSE.get().addListener(LOBBY_MESSAGE_TYPE, (message) => this.handleMessage(message));
 
     this.peer.on('open', () => {
-      console.log("Peer setup at " + this.getPeerId());
+      console.log("Peer setup at " + this.peerId);
       this.peer.on('connection', (conn) => this.onConnection(conn));
     });
 
   }
 
-  getPeerId(): PeerUUID {
-    return this.peer.id as PeerUUID;
+  get selfId(): PlayerUUID {
+    return this.hostId;
   }
 
-  getHostId(): PlayerUUID {
-    return this.host;
-  }
-
-  getSelfId(): PlayerUUID {
-    return this.host;
-  }
-
-  players(): Iterable<PlayerUUID> {
+  get players(): Iterable<PlayerUUID> {
     return this.connections.keys();
   }
 
-  playerCount(): number {
-    return [...this.players()].length
-  }
-
-  maxPlayers(): number {
-    return this.maxPlayersCount;
+  get playerCount(): number {
+    return [...this.players].length
   }
 
   hasGameStarted(): boolean {
@@ -136,7 +121,7 @@ export class HostLobby extends Lobby {
       // The player had already connected at some point before. This
       // is a reconnect, so allow it.
       return true;
-    } else if ((this.playerCount() < this.maxPlayers()) && (!this.hasGameStarted())) {
+    } else if ((this.playerCount < this.maxPlayers) && (!this.hasGameStarted())) {
       // There's room for a new player and the game hasn't started
       // yet, so allow it. (TODO Some games might allow late arrivals?)
       return true;
@@ -185,7 +170,7 @@ export class HostLobby extends Lobby {
   private async handleMessage(message: IncomingMessage): Promise<void> {
     switch (message.message.type) {
       case "get-peer-id":
-        const response = new DirectMessage(message.source, LOBBY_MESSAGE_TYPE, { type: "response-peer-id", id: this.getPeerId() });
+        const response = new DirectMessage(message.source, LOBBY_MESSAGE_TYPE, { type: "response-peer-id", id: this.peerId });
         SSE.get().sendMessage(response);
         break;
     }
@@ -212,37 +197,21 @@ export class HostLobby extends Lobby {
 }
 
 export class GuestLobby extends Lobby {
-  private host: PlayerUUID;
-  private selfId: PlayerUUID;
-  private peer: Peer;
+  readonly selfId: PlayerUUID;
   private conn: DataConnection | undefined;
 
   constructor(code: string, host: PlayerUUID, selfId: PlayerUUID) {
-    super(code);
-    this.host = host;
-    this.selfId = selfId;
-    this.peer = new Peer(undefined, { debug: PEER_DEBUG_LEVEL });
+    super(code, host);
     this.conn = undefined;
+    this.selfId = selfId;
 
     SSE.get().addListener(LOBBY_MESSAGE_TYPE, (message) => this.handleMessage(message));
     this.peer.on("open", async () => await this.tryToConnect());
 
   }
 
-  getPeerId(): PeerUUID {
-    return this.peer.id as PeerUUID;
-  }
-
-  getHostId(): PlayerUUID {
-    return this.host;
-  }
-
-  getSelfId(): PlayerUUID {
-    return this.selfId;
-  }
-
   private async tryToConnect(): Promise<void> {
-    await SSE.get().sendMessage(new DirectMessage(this.host, LOBBY_MESSAGE_TYPE, { type: 'get-peer-id' }));
+    await SSE.get().sendMessage(new DirectMessage(this.hostId, LOBBY_MESSAGE_TYPE, { type: 'get-peer-id' }));
   }
 
   private async handleMessage(message: IncomingMessage): Promise<void> {
@@ -257,18 +226,18 @@ export class GuestLobby extends Lobby {
           console.log("Got connection");
           this.conn = conn;
           conn.on('data', (data) => this.onMessage(data));
-          this.dispatchOnListeners((listener) => listener.onConnect(this.getHostId()));
+          this.dispatchOnListeners((listener) => listener.onConnect(this.hostId));
         });
         break;
     }
   }
 
   private onMessage(message: any): void {
-    this.dispatchOnListeners((listener) => listener.onMessage(message, this.host));
+    this.dispatchOnListeners((listener) => listener.onMessage(message, this.hostId));
   }
 
   sendMessageTo(target: PlayerUUID, message: LobbyMessage): void {
-    if (target != this.getHostId()) {
+    if (target != this.hostId) {
       // There is only one valid target ID: the host
       throw `Invalid message target ${target}`;
     }
