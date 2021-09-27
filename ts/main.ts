@@ -4,7 +4,7 @@ import { RTC_CONFIG, LOBBY_MESSAGE_TYPE,
          hostLobby, HostLobby } from './lobby.js';
 import { LobbyListener, AbstractLobbyListener, LobbyMessage } from './lobby/listener.js';
 import { DebugLobbyListener } from './debug_lobby_listener.js';
-import { REMOTE_CONTROL_MESSAGE_TYPE, infoRC } from './remote_control.js';
+import { REMOTE_CONTROL_MESSAGE_TYPE, RCPageGenerator } from './remote_control.js';
 
 const DEFAULT_MAX_PLAYERS = 4;
 
@@ -58,7 +58,7 @@ export async function setupNewGame(): Promise<void> {
 
   $("#send-info-message").click(() => {
     const info = $("#info-message").val() as string;
-    const payload = infoRC(info);
+    const payload = RCPageGenerator.get().infoPage(info);
     lobby.sendMessageToAll(lobby.newMessage(REMOTE_CONTROL_MESSAGE_TYPE, payload));
   });
 

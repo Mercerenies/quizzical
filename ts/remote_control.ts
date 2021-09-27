@@ -5,6 +5,8 @@
 import { GuestLobby } from './lobby.js';
 import { MessageListener } from './message_dispatcher.js';
 import { LobbyMessage } from './lobby/listener.js';
+import { RCID } from './uuid.js';
+import { LFSR } from './lfsr.js';
 
 export const REMOTE_CONTROL_MESSAGE_TYPE = "RemoteControl.REMOTE_CONTROL_MESSAGE_TYPE";
 
@@ -88,21 +90,47 @@ export class RemoteControlListener implements MessageListener {
 
 export interface RemoteControlMessage {
   rcType: keyof typeof RC_TRANSLATION;
+  rcId: RCID; ///// TODO Store this on client side
   rcParams: any;
 }
 
-export function joinedRC(): RemoteControlMessage {
-  return {
-    rcType: "joined",
-    rcParams: {},
-  };
-}
+let _pageGenerator: RCPageGenerator | null = null;
 
-export function infoRC(info: string): RemoteControlMessage {
-  return {
-    rcType: "info",
-    rcParams: { info: info },
-  };
+// Singleton class
+export class RCPageGenerator {
+  private lfsr: LFSR;
+
+  constructor() {
+    this.lfsr = new LFSR();
+  }
+
+  generateID(): RCID {
+    return this.lfsr.generate() as RCID;
+  }
+
+  joinedPage(): RemoteControlMessage {
+    return {
+      rcType: "joined",
+      rcId: this.generateID(),
+      rcParams: {},
+    };
+  }
+
+  infoPage(info: string): RemoteControlMessage {
+    return {
+      rcType: "info",
+      rcId: this.generateID(),
+      rcParams: { info: info },
+    };
+  }
+
+  static get(): RCPageGenerator {
+    if (!_pageGenerator) {
+      _pageGenerator = new RCPageGenerator();
+    }
+    return _pageGenerator;
+  }
+
 }
 
 // Some basic validation

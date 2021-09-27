@@ -5,3 +5,7 @@ export type PlayerUUID = string & { readonly __tag: unique symbol };
 
 // Newtype wrapper for peerjs UUIDs.
 export type PeerUUID = string & { readonly __tag: unique symbol };
+
+// Newtype wrapper for numerical IDs which represent remote control
+// page identifiers.
+export type RCID = number & { readonly __tag: unique symbol };
