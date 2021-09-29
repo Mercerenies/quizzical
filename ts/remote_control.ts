@@ -34,6 +34,7 @@ export class RemoteControlDisplay {
   initialize(lobby: GuestLobby) {
     this.page.find("#player-name").text(lobby.playerName);
     this.page.find("#game-code").text(lobby.code);
+    this.page.data("rcid", this.payload.rcId);
   }
 
   static createFrom(payload: RemoteControlMessage, page: JQuery<HTMLElement>): RemoteControlDisplay {
@@ -90,7 +91,7 @@ export class RemoteControlListener implements MessageListener {
 
 export interface RemoteControlMessage {
   rcType: keyof typeof RC_TRANSLATION;
-  rcId: RCID; ///// TODO Store this on client side
+  rcId: RCID;
   rcParams: any;
 }
 
