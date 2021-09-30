@@ -4,6 +4,7 @@ import { DebugLobbyListener } from './debug_lobby_listener.js';
 import { LobbyMessage } from './lobby/listener.js';
 import { META_MESSAGE_TYPE, GuestLobby, joinLobby, MetaMessage } from './lobby.js';
 import { RemoteControlListener } from './remote_control.js';
+import * as Util from './util.js';
 
 class ConnectStatusUpdater implements MessageListener {
   readonly messageType: string = META_MESSAGE_TYPE;
@@ -66,9 +67,5 @@ function initListeners(lobby: GuestLobby): void {
 export function setupConnectPage(): void {
   $("#submit").click(pingWithCode);
   $("#connection-status").html("Not connected");
-  $("#code, #player-name").keypress(function(e) {
-    if(e.which == 13) {
-      $("#submit").trigger('click');
-    }
-  });
+  Util.enterToButton($("#code, #player-name"), $("#submit"));
 }

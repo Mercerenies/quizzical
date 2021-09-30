@@ -1,0 +1,41 @@
+<main>
+  <div class="container">
+
+    <div class="row">
+      <div class="col-md-12">
+        <h1>Testing things :)</h1>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-8">
+        <input id="text" type="text" class="form-control"></input>
+      </div>
+      <div class="col-md-4">
+        <button id="submit" class="btn btn-primary">Render</button>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-16">
+        <div id="content">
+          (Content)
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-16">
+        <div>
+          This should *not* render as markdown or $$mathjax^2$$ \[because I did not tell it to_1\]
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module">
+   import { renderTest } from './render_test.js';
+   $(renderTest);
+  </script>
+</main>

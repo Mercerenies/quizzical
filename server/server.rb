@@ -49,6 +49,10 @@ get '/sse-test' do
   erb :sse_test
 end
 
+get '/render-test' do
+  erb :render_test
+end
+
 get '/game' do
   erb :game
 end
