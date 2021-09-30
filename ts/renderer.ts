@@ -23,9 +23,13 @@ export function initialize() {
   _initialized = true;
 }
 
-export function render(text: string): string {
-  const rendered = marked(text);
-  return DOMPurify.sanitize(rendered); // TODO SAFE_FOR_JQUERY? (Typescript doesn't like it)
+export function render(text: string): Promise<string> {
+  // The MathJax call can be a bit on the slow side, so we want to
+  // provide the ability to await on this function.
+  return new Promise((resolve) => {
+    const rendered = marked(text);
+    resolve(DOMPurify.sanitize(rendered)); // TODO SAFE_FOR_JQUERY? (Typescript doesn't like it)
+  });
 }
 
 export const InlineLatex = {

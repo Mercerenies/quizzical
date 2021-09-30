@@ -14,12 +14,10 @@ export function renderTest() {
 
   $("#submit").click(doMarkdown);
 
-  /*
-  renderMarkdown(String.raw`<br/>This is an **equation**: $x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$`)
+  render(String.raw`<br/>This is an **equation**: $x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$`)
     .then((cleanedPreload) => {
       $("#html-preload").html(cleanedPreload);
     });
-  */
 
   const dirty = "<div><script src='dangerous.js'><\/script></div><p>test</p>";
   const clean = DOMPurify.sanitize(dirty);
@@ -28,8 +26,8 @@ export function renderTest() {
 
 }
 
-function doMarkdown() {
+async function doMarkdown() {
   const text = $("#text").val() as string;
-  const rendered = render(text);
+  const rendered = await render(text);
   $("#content").html(rendered);
 }
