@@ -8,12 +8,14 @@ import { LobbyMessage } from './lobby/listener.js';
 import { RCID } from './uuid.js';
 import { LFSR } from './lfsr.js';
 import { render } from './renderer.js';
+import * as Util from './util.js';
 
 export const REMOTE_CONTROL_MESSAGE_TYPE = "RemoteControl.REMOTE_CONTROL_MESSAGE_TYPE";
 
 export const RC_TRANSLATION = {
   'joined': '/rc/joined',
   'info': '/rc/info',
+  'freeform': '/rc/freeform',
 };
 
 // Any DOM element intended as the root of a remote control display
@@ -44,6 +46,8 @@ export class RemoteControlDisplay {
         return new RemoteControlJoinedDisplay(payload, page);
       case 'info':
         return new RemoteControlInfoDisplay(payload, page);
+      case 'freeform':
+        return new RemoteControlFreeformDisplay(payload, page);
     }
   }
 
@@ -63,6 +67,21 @@ export class RemoteControlInfoDisplay extends RemoteControlDisplay {
     render(info).then((mdInfo) => {
       this.page.find("#informational-message").html(mdInfo);
     });
+  }
+
+}
+
+export class RemoteControlFreeformDisplay extends RemoteControlDisplay {
+  readonly rcType: keyof typeof RC_TRANSLATION = "freeform";
+
+  initialize(lobby: GuestLobby) {
+    super.initialize(lobby);
+    const payload = this.payload as RemoteControlFreeformMessage;
+    const questionText = payload.rcParams.questionText;
+    render(questionText).then((mdQuestionText) => {
+      this.page.find("#question-text").html(mdQuestionText);
+    });
+    Util.enterToButton($("#question-answer"), $("#question-submit"));
   }
 
 }
@@ -109,6 +128,11 @@ export interface RemoteControlInfoMessage extends RemoteControlMessage {
   rcParams: { info: string };
 }
 
+export interface RemoteControlFreeformMessage extends RemoteControlMessage {
+  rcType: "freeform";
+  rcParams: { questionText: string };
+}
+
 let _pageGenerator: RCPageGenerator | null = null;
 
 // Singleton class
@@ -136,6 +160,14 @@ export class RCPageGenerator {
       rcType: "info",
       rcId: this.generateID(),
       rcParams: { info: info },
+    };
+  }
+
+  freeformPage(questionText: string): RemoteControlFreeformMessage {
+    return {
+      rcType: "freeform",
+      rcId: this.generateID(),
+      rcParams: { questionText: questionText },
     };
   }
 

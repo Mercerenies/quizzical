@@ -1,0 +1,27 @@
+<main>
+  <div class="container">
+    <%= erb :'remote_control/game_info_header' %>
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-body" id="question-text">
+            ????
+          </div>
+
+          <div class="container">
+            <div class="row">
+              <div class="col-md-8">
+                <input id="question-answer" class="form-control no-spin-buttons" type="number"
+                  step="any" required="true"></input>
+              </div>
+              <div class="col-md-4">
+                <button id="question-submit" class="btn btn-primary form-control">Submit</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
