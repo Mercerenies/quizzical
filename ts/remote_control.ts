@@ -58,7 +58,8 @@ export class RemoteControlInfoDisplay extends RemoteControlDisplay {
 
   initialize(lobby: GuestLobby) {
     super.initialize(lobby);
-    const info = this.payload.rcParams.info;
+    const payload = this.payload as RemoteControlInfoMessage;
+    const info = payload.rcParams.info;
     render(info).then((mdInfo) => {
       this.page.find("#informational-message").html(mdInfo);
     });
@@ -96,7 +97,16 @@ export class RemoteControlListener implements MessageListener {
 export interface RemoteControlMessage {
   rcType: keyof typeof RC_TRANSLATION;
   rcId: RCID;
-  rcParams: any;
+  rcParams: {};
+}
+
+export interface RemoteControlJoinedMessage extends RemoteControlMessage {
+  rcType: "joined";
+}
+
+export interface RemoteControlInfoMessage extends RemoteControlMessage {
+  rcType: "info";
+  rcParams: { info: string };
 }
 
 let _pageGenerator: RCPageGenerator | null = null;
@@ -113,7 +123,7 @@ export class RCPageGenerator {
     return this.lfsr.generate() as RCID;
   }
 
-  joinedPage(): RemoteControlMessage {
+  joinedPage(): RemoteControlJoinedMessage {
     return {
       rcType: "joined",
       rcId: this.generateID(),
@@ -121,7 +131,7 @@ export class RCPageGenerator {
     };
   }
 
-  infoPage(info: string): RemoteControlMessage {
+  infoPage(info: string): RemoteControlInfoMessage {
     return {
       rcType: "info",
       rcId: this.generateID(),
