@@ -53,6 +53,10 @@ get '/render-test' do
   erb :render_test
 end
 
+get '/remote-control-test' do
+  erb :remote_control_test
+end
+
 get '/game' do
   erb :game
 end
