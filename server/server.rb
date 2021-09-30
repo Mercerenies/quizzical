@@ -66,11 +66,11 @@ get '/connect' do
 end
 
 get '/rc/joined' do
-  erb :joined, layout: false
+  erb :'remote_control/joined', layout: false
 end
 
 get '/rc/info' do
-  erb :info, layout: false
+  erb :'remote_control/info', layout: false
 end
 
 get '/listen' do
