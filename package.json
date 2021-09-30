@@ -1,6 +1,10 @@
 {
   "dependencies": {
+    "@types/dompurify": "^2.3.1",
     "@types/jquery": "^3.5.6",
-    "@types/peerjs": "^1.1.0"
+    "@types/marked": "^3.0.1",
+    "@types/mathjax": "0.0.37",
+    "@types/peerjs": "^1.1.0",
+    "marked": "^3.0.4"
   }
 }

@@ -6,16 +6,17 @@
 
 import * as Util from './util.js';
 
-declare const marked: any; ////
-declare const DOMPurify: any; ////
-declare const MathJax: any; ////
-
 export function renderTest() {
 
   setupMarkedOptions();
   Util.enterToButton($("#text"), $("#submit"));
 
   $("#submit").click(doMarkdown);
+
+  renderMarkdown(String.raw`<br/>This is an **equation**: $x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$`)
+    .then((cleanedPreload) => {
+      $("#html-preload").html(cleanedPreload);
+    });
 
   const dirty = "<div><script src='dangerous.js'><\/script></div><p>test</p>";
   const clean = DOMPurify.sanitize(dirty);
@@ -69,7 +70,9 @@ const InlineLatex = {
   },
 
   renderer(token: any) {
-    const mml = MathJax.tex2mml(token.inlineLatex, { display: false });
+    // TODO The DefinitelyTyped bindings for MathJax don't recognize
+    // this function. What can we do about it?
+    const mml = (MathJax as any).tex2mml(token.inlineLatex, { display: false });
     return mml;
   }
 
@@ -77,5 +80,5 @@ const InlineLatex = {
 
 export async function renderMarkdown(text: string): Promise<string> {
   const rendered = marked(text);
-  return DOMPurify.sanitize(rendered, {SAFE_FOR_JQUERY: true});
+  return DOMPurify.sanitize(rendered); // TODO SAFE_FOR_JQUERY? (Typescript doesn't like it)
 }
