@@ -18,7 +18,7 @@ export function initialize() {
   // TODO Integration with highlight.js?
 
   marked.setOptions(MARKED_OPTIONS);
-  marked.use({ extensions: [InlineLatex as any] }); // TODO Why does Typescript not like this type?
+  marked.use({ extensions: [InlineLatex as any, BlockLatex as any] }); // TODO Why does Typescript not like this type?
 
   _initialized = true;
 }
@@ -33,7 +33,7 @@ export const InlineLatex = {
   level: "inline" as const,
 
   start(src: string): number | undefined {
-    const match = src.match(/\$/);
+    const match = src.match(/\$(?!\$)/);
     if (match) {
       return match.index;
     } else {
@@ -42,7 +42,7 @@ export const InlineLatex = {
   },
 
   tokenizer(src: string): InlineLatexToken | undefined {
-    const match = src.match(/^\$((?:[^$\n]|\\[^\n])+)\$/);
+    const match = src.match(/^\$(?!\$)((?:[^$\n]|\\[^\n])+)\$/);
     if (match) {
       return {
         type: "inlineLatex",
@@ -63,8 +63,49 @@ export const InlineLatex = {
 
 };
 
+export const BlockLatex = {
+  name: "blockLatex",
+  level: "block" as const,
+
+  start(src: string): number | undefined {
+    const match = src.match(/\$\$/);
+    if (match) {
+      return match.index;
+    } else {
+      return undefined;
+    }
+  },
+
+  tokenizer(src: string): BlockLatexToken | undefined {
+    const match = src.match(/^\$\$((?:[^$\n]|\\[^\n]|$[^$])+)\$\$/);
+    if (match) {
+      return {
+        type: "blockLatex",
+        raw: match[0],
+        blockLatex: match[1],
+      };
+    } else {
+      return undefined;
+    }
+  },
+
+  renderer(token: BlockLatexToken): string {
+    // TODO The DefinitelyTyped bindings for MathJax don't recognize
+    // this function. What can we do about it?
+    const mml = (MathJax as any).tex2mml(token.blockLatex, { display: true });
+    return mml;
+  },
+
+};
+
 export interface InlineLatexToken {
   type: "inlineLatex";
   raw: string;
   inlineLatex: string;
+}
+
+export interface BlockLatexToken {
+  type: "blockLatex";
+  raw: string;
+  blockLatex: string;
 }
