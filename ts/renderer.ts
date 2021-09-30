@@ -8,8 +8,6 @@ const MARKED_OPTIONS = {
   xhtml: true,
 };
 
-// This function should be called once before calling any of the other
-// rendering functions in this module.
 export function initialize() {
   if (_initialized) {
     return;
@@ -26,6 +24,7 @@ export function initialize() {
 export function render(text: string): Promise<string> {
   // The MathJax call can be a bit on the slow side, so we want to
   // provide the ability to await on this function.
+  initialize();
   return new Promise((resolve) => {
     const rendered = marked(text);
     resolve(DOMPurify.sanitize(rendered)); // TODO SAFE_FOR_JQUERY? (Typescript doesn't like it)

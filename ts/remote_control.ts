@@ -7,6 +7,7 @@ import { MessageListener } from './message_dispatcher.js';
 import { LobbyMessage } from './lobby/listener.js';
 import { RCID } from './uuid.js';
 import { LFSR } from './lfsr.js';
+import { render } from './renderer.js';
 
 export const REMOTE_CONTROL_MESSAGE_TYPE = "RemoteControl.REMOTE_CONTROL_MESSAGE_TYPE";
 
@@ -57,7 +58,10 @@ export class RemoteControlInfoDisplay extends RemoteControlDisplay {
 
   initialize(lobby: GuestLobby) {
     super.initialize(lobby);
-    this.page.find("#informational-message").text(this.payload.rcParams.info);
+    const info = this.payload.rcParams.info;
+    render(info).then((mdInfo) => {
+      this.page.find("#informational-message").html(mdInfo);
+    });
   }
 
 }
