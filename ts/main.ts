@@ -9,9 +9,12 @@ import { RTC_CONFIG, LOBBY_MESSAGE_TYPE,
          hostLobby, HostLobby } from './lobby.js';
 import { LobbyListener, AbstractLobbyListener, LobbyMessage } from './lobby/listener.js';
 import { DebugLobbyListener } from './debug_lobby_listener.js';
-import { REMOTE_CONTROL_MESSAGE_TYPE, RCPageGenerator } from './remote_control.js';
+import { REMOTE_CONTROL_MESSAGE_TYPE, RCPageGenerator, RemoteControlMessage } from './remote_control.js';
+import { PlayerUUID } from './uuid.js';
 
 const DEFAULT_MAX_PLAYERS = 4;
+
+let _rc: RemoteControlMessage = RCPageGenerator.get().joinedPage();
 
 class PlayerListUpdater extends AbstractLobbyListener {
   private lobby: HostLobby;
@@ -51,6 +54,34 @@ class PlayerListUpdater extends AbstractLobbyListener {
 
 }
 
+class RCInitialSender extends AbstractLobbyListener {
+  private lobby: HostLobby;
+
+  constructor(lobby: HostLobby) {
+    super();
+    this.lobby = lobby;
+  }
+
+  onConnect(player: PlayerUUID): void {
+    this.sendUpdateTo(player);
+  }
+
+  onReconnect(player: PlayerUUID): void {
+    this.sendUpdateTo(player);
+  }
+
+  sendUpdateTo(player: PlayerUUID): void {
+    const message = this.lobby.newMessage(REMOTE_CONTROL_MESSAGE_TYPE, _rc);
+    this.lobby.sendMessageTo(player, message);
+  }
+
+}
+
+function setRC(lobby: HostLobby, payload: RemoteControlMessage): void {
+  _rc = payload;
+  lobby.sendMessageToAll(lobby.newMessage(REMOTE_CONTROL_MESSAGE_TYPE, payload));
+}
+
 /**
  * Set up the game page. Should be called once after the page is
  * loaded.
@@ -58,9 +89,11 @@ class PlayerListUpdater extends AbstractLobbyListener {
 export async function setupNewGame(): Promise<void> {
   const lobby = await hostLobby(DEFAULT_MAX_PLAYERS);
   const updater = new PlayerListUpdater(lobby, $("#player-list"));
+  const initSender = new RCInitialSender(lobby);
 
   lobby.addListener(new DebugLobbyListener());
   lobby.addListener(updater);
+  lobby.addListener(initSender);
 
   updater.update();
   $("#code").text(lobby.code);
@@ -68,7 +101,7 @@ export async function setupNewGame(): Promise<void> {
   $("#send-info-message").click(() => {
     const info = $("#info-message").val() as string;
     const payload = RCPageGenerator.get().infoPage(info);
-    lobby.sendMessageToAll(lobby.newMessage(REMOTE_CONTROL_MESSAGE_TYPE, payload));
+    setRC(lobby, payload);
   });
 
 }

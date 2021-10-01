@@ -1,6 +1,10 @@
 
-// Manages the interfaces that can appear on screen on a client, as
-// instructed by the server.
+/**
+ * Manages the interfaces that can appear on screen on a client, as
+ * instructed by the server.
+ *
+ * @module
+ */
 
 import { GuestLobby } from './lobby.js';
 import { MessageListener } from './message_dispatcher.js';
@@ -154,9 +158,11 @@ let _pageGenerator: RCPageGenerator | null = null;
 // Singleton class
 export class RCPageGenerator {
   private lfsr: LFSR;
+  private joinedID: RCID;
 
   constructor() {
     this.lfsr = new LFSR();
+    this.joinedID = this.generateID();
   }
 
   generateID(): RCID {
@@ -164,9 +170,12 @@ export class RCPageGenerator {
   }
 
   joinedPage(): RemoteControlJoinedMessage {
+    // Note: The joined page gets a unique ID globally, since it will
+    // never require any feedback and is generated in several
+    // different places in the code.
     return {
       rcType: "joined",
-      rcId: this.generateID(),
+      rcId: this.joinedID,
       rcParams: {},
     };
   }

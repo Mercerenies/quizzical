@@ -182,9 +182,6 @@ export class HostLobby extends Lobby {
 
       conn.send(this.newMessage(META_MESSAGE_TYPE, new MetaMessage('success', LobbyErrorCode.OK)));
 
-      const joinedDisplay: RemoteControlMessage = RCPageGenerator.get().joinedPage();
-      conn.send(this.newMessage(REMOTE_CONTROL_MESSAGE_TYPE, joinedDisplay));
-
     }, 0);
 
   }
