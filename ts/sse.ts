@@ -2,6 +2,7 @@
 /**
  * Provides the {@link SSE} class for managing SSE communication.
  *
+ * @module
  * @see https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events
  */
 

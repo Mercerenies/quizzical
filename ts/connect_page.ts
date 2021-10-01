@@ -65,7 +65,7 @@ async function pingWithCode(): Promise<void> {
 
 function initListeners(lobby: GuestLobby): void {
   lobby.addListener(new DebugLobbyListener());
-  lobby.dispatcher.addListener(new ConnectStatusUpdater($("#connection-status"), lobby));
+  lobby.dispatcher.addListener(new ConnectStatusUpdater($("#connection-status"), lobby)); // TODO Remove this
   lobby.dispatcher.addListener(new RemoteControlListener(lobby));
 }
 
