@@ -61,6 +61,10 @@ get '/game' do
   erb :game
 end
 
+get '/game/play' do
+  erb :running_game, layout: false
+end
+
 get '/connect' do
   erb :connect
 end

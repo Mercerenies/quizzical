@@ -85,6 +85,18 @@ function setRC(lobby: HostLobby, payload: RemoteControlMessage): void {
   lobby.sendMessageToAll(lobby.newMessage(REMOTE_CONTROL_MESSAGE_TYPE, payload));
 }
 
+async function startGame(lobby: HostLobby): Promise<void> {
+  if (lobby.playerCount > 0) {
+    lobby.startGame();
+    console.log("Starting game...");
+
+    const newPage = $(await $.get('/game/play'));
+    $("main").replaceWith(newPage);
+
+  }
+}
+
+
 /**
  * Set up the game page. Should be called once after the page is
  * loaded.
@@ -102,17 +114,8 @@ export function setupNewGame(): void {
     updater.update();
     $("#code").text(lobby.code);
 
-    $("#start-game").click(() => {
-      if (lobby.playerCount > 0) {
-        lobby.startGame();
-        console.log("Starting game...");
-      }
-    });
+    $("#start-game").click(() => startGame(lobby));
 
   });
 
 }
-
-$(function() {
-  console.log("Ready!");
-})
