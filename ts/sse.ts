@@ -1,8 +1,25 @@
 
+/**
+ * Provides the {@link SSE} class for managing SSE communication.
+ *
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events
+ */
+
 import { PlayerUUID } from './uuid.js';
 
 let _sseSingleton: SSE | null = null;
 
+/**
+ * SSE is a singleton class for managing server-sent events which can
+ * be sent to and from peers.
+ *
+ * Every client which connects to the server receives (via a browser
+ * cookie) a unique player identifier. Using this class, a client can
+ * send a message to any other client simply by knowing their unique
+ * identifier. All such messages go through the central server, so
+ * this mechanism should only be used to negotiate and establish a
+ * direct peer-to-peer communication, not to run the entire game.
+ */
 export class SSE {
   private listeners: Map<string, SSEListener[]>;
   private sse: EventSource;
@@ -16,6 +33,12 @@ export class SSE {
     });
   }
 
+  /**
+   * Adds a handler for a specific message type.
+   *
+   * @param messageType the type of message to handle
+   * @param listener the listener to handle the message
+   */
   addListener(messageType: string, listener: SSEListener): void {
     let listenerList = this.listeners.get(messageType);
     if (listenerList === undefined) {
@@ -25,6 +48,13 @@ export class SSE {
     listenerList.push(listener);
   }
 
+  /**
+   * Removes a handler.
+   *
+   * @param messageType the type of message the handler was configured for
+   * @param listener the listener to remove
+   * @return whether the listener was found or not
+   */
   removeListener(messageType: string, listener: SSEListener): boolean {
     const listenerList = (this.listeners.get(messageType) ?? []);
     const index = listenerList.findIndex(function(x) { return x == listener; });
@@ -40,11 +70,18 @@ export class SSE {
     (this.listeners.get(data.messageType) ?? []).forEach(function(listener) { listener(data) });
   }
 
+  /**
+   * Sends a message to a peer, or to all connected peers, depending
+   * on the type of message.
+   */
   async sendMessage(message: OutgoingMessage): Promise<void> {
     const target = message.postTarget();
     await $.post(target, JSON.stringify(message));
   }
 
+  /**
+   * Gets the singleton instance of SSE.
+   */
   static get(): SSE {
     if (!_sseSingleton) {
       _sseSingleton = new SSE();
@@ -54,20 +91,48 @@ export class SSE {
 
 }
 
+/**
+ * An SSEListener is simply a function which accepts an {@link
+ * IncomingMessage}.
+ */
 export interface SSEListener {
   (message: IncomingMessage): void;
 }
 
+/**
+ * An outgoing message. Instances of this interface should generally
+ * not be constructed directly. Instead, the implementing classes
+ * provided in this module should be used.
+ */
 export interface OutgoingMessage {
+
+  /**
+   * Returns a JSON representation of the message, for serialization
+   * purposes.
+   */
   toJSON(): object;
+
+  /**
+   * The URL to send the message to. The HTTP POST method will always
+   * be used to do so.
+   */
   postTarget(): string;
+
 }
 
+/**
+ * A direct message is a message intended for a single peer.
+ */
 export class DirectMessage implements OutgoingMessage {
   readonly target: PlayerUUID;
   readonly messageType: string;
   readonly message: object;
 
+  /**
+   * @param target the ID of the client to send the message to
+   * @param messageType the type of message
+   * @param message the payload, a JSON-serializable object
+   */
   constructor(target: PlayerUUID, messageType: string, message: object) {
     this.target = target;
     this.messageType = messageType;
@@ -88,10 +153,17 @@ export class DirectMessage implements OutgoingMessage {
 
 }
 
-export class BroadcastMessage implements OutgoingMessage {
+/**
+ * A broadcast message, to be sent to all connected peers.
+ */
+export class BroadcastMessage implements OutgoingMessage { // TODO Disable this functionality on the prod server
   readonly messageType: string;
   readonly message: object;
 
+  /**
+   * @param messageType the type of message
+   * @param message the payload, a JSON-serializable object
+   */
   constructor(messageType: string, message: object) {
     this.messageType = messageType;
     this.message = message;
@@ -110,13 +182,16 @@ export class BroadcastMessage implements OutgoingMessage {
 
 }
 
+/**
+ * The minimal interface implemented by {@link IncomingMessage}.
+ */
 export interface IncomingMessageBase {
   readonly source: PlayerUUID;
   readonly messageType: string;
   readonly message: any;
 }
 
-export class IncomingMessage {
+export class IncomingMessage implements IncomingMessageBase {
   readonly source: PlayerUUID;
   readonly messageType: string;
   readonly message: any; // TODO: Generic? Make this not 'any' at least
