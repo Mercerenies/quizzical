@@ -7,7 +7,7 @@
  * LaTeX using MathJax. Finally, any input to the renderer in this
  * module is sanitized via DOMPurify before being returned.
  *
- * @module
+ * @module renderer
  */
 
 let _initialized: boolean = false;

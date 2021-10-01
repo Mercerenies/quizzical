@@ -2,7 +2,7 @@
 /**
  * Higher-level interface to use on top of an existing Lobby object.
  *
- * @module
+ * @module message_dispatcher
  */
 
 import { PlayerUUID } from './uuid.js';

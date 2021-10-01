@@ -1,6 +1,7 @@
 
 /**
  * Setup behavior for the "new game" page.
+ *
  * @module main
  */
 

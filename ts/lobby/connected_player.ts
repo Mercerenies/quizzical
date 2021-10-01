@@ -2,7 +2,7 @@
 /**
  * Provides {@link ConnectedPlayer}.
  *
- * @module
+ * @module lobby/connected_player
  */
 
 import { PlayerUUID } from '../uuid.js';

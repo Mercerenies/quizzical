@@ -3,7 +3,7 @@
  * Manages the interfaces that can appear on screen on a client, as
  * instructed by the server.
  *
- * @module
+ * @module remote_control
  */
 
 import { GuestLobby } from './lobby.js';

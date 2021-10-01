@@ -2,7 +2,7 @@
 /**
  * Provides the {@link DebugLobbyListener} type.
  *
- * @module
+ * @module lobby/debug_listener
  */
 
 import { LobbyListener, LobbyMessage } from './listener.js';
