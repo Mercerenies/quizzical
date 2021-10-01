@@ -49,6 +49,9 @@ async function pingWithCode(): Promise<void> {
     if (playerName.length < 1) {
       throw new PingError("Please enter your name");
     }
+    $("#alert-feedback").html(`
+      <div class="alert alert-info">Connecting...</div>
+    `);
     const lobby = await joinLobby(code.toUpperCase(), playerName);
     if (lobby === undefined) {
       throw new PingError(`There is no lobby with code ${code.toUpperCase()}`);
@@ -56,7 +59,9 @@ async function pingWithCode(): Promise<void> {
     initListeners(lobby);
   } catch (e) {
     if (e instanceof PingError) {
-      alert(e.message);
+      $("#alert-feedback").html(`
+        <div class="alert alert-danger">${e.message}</div>
+      `);
     } else {
       throw e;
     }
