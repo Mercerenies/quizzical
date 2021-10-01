@@ -1,5 +1,14 @@
 
-// Functionality for rendering Markdown and Latex as HTML/MathML
+/**
+ * Functionality for rendering Markdown and Latex as HTML/MathML.
+ *
+ * This software uses the markedjs Javascript library to render
+ * Markdown. It also provides an extension to markedjs which renders
+ * LaTeX using MathJax. Finally, any input to the renderer in this
+ * module is sanitized via DOMPurify before being returned.
+ *
+ * @module
+ */
 
 let _initialized: boolean = false;
 
@@ -8,6 +17,11 @@ const MARKED_OPTIONS = {
   xhtml: true,
 };
 
+/**
+ * Initializes the renderer. It is rarely necessary to call this
+ * function explicitly, as the render function will call it
+ * automatically if the renderer is uninitialized.
+ */
 export function initialize() {
   if (_initialized) {
     return;
@@ -21,6 +35,9 @@ export function initialize() {
   _initialized = true;
 }
 
+/**
+ * Renders a string of Markdown text.
+ */
 export function render(text: string): Promise<string> {
   // The MathJax call can be a bit on the slow side, so we want to
   // provide the ability to await on this function.
@@ -31,6 +48,9 @@ export function render(text: string): Promise<string> {
   });
 }
 
+/**
+ * The markedjs extension which allows `$ ... $` inline LaTeX syntax.
+ */
 export const InlineLatex = {
   name: "inlineLatex",
   level: "inline" as const,
@@ -66,6 +86,9 @@ export const InlineLatex = {
 
 };
 
+/**
+ * The markedjs extension which allows `$$ ... $$` block LaTeX syntax.
+ */
 export const BlockLatex = {
   name: "blockLatex",
   level: "block" as const,

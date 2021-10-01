@@ -1,4 +1,9 @@
 
+/**
+ * Setup behavior for the "connect to game" page.
+ * @module connect_page
+ */
+
 import { MessageListener } from './message_dispatcher.js';
 import { DebugLobbyListener } from './debug_lobby_listener.js';
 import { LobbyMessage } from './lobby/listener.js';
@@ -64,6 +69,10 @@ function initListeners(lobby: GuestLobby): void {
   lobby.dispatcher.addListener(new RemoteControlListener(lobby));
 }
 
+/**
+ * Set up the connect page. Should be called once after the page is
+ * loaded.
+ */
 export function setupConnectPage(): void {
   $("#submit").click(pingWithCode);
   $("#connection-status").html("Not connected");

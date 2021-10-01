@@ -3,3 +3,4 @@ db/
 public/**/*.js
 node_modules/
 build-cache/
+docs/

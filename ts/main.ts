@@ -1,4 +1,9 @@
 
+/**
+ * Setup behavior for the "new game" page.
+ * @module main
+ */
+
 import { SSE, DirectMessage } from './sse.js';
 import { RTC_CONFIG, LOBBY_MESSAGE_TYPE,
          hostLobby, HostLobby } from './lobby.js';
@@ -46,6 +51,10 @@ class PlayerListUpdater extends AbstractLobbyListener {
 
 }
 
+/**
+ * Set up the game page. Should be called once after the page is
+ * loaded.
+ */
 export async function setupNewGame(): Promise<void> {
   const lobby = await hostLobby(DEFAULT_MAX_PLAYERS);
   const updater = new PlayerListUpdater(lobby, $("#player-list"));

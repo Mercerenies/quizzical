@@ -1,7 +1,17 @@
 
+/**
+ * Provides the {@link DebugLobbyListener} type.
+ *
+ * @module
+ */
+
 import { LobbyListener, LobbyMessage } from './lobby/listener.js';
 import { PlayerUUID } from './uuid.js';
 
+/**
+ * {@link LobbyListener} which simply prints debug messages to console
+ * whenever it receives any event.
+ */
 export class DebugLobbyListener implements LobbyListener {
 
   onMessage(message: LobbyMessage): void {
