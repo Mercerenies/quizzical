@@ -49,6 +49,9 @@ function setFeedbackMessage(alertClass: string, message: string): void {
   `);
 }
 
+// TODO Put a timeout on connection attempt, or find some other way to
+// make sure the error message gets from host to guest when attempting
+// connection.
 async function pingWithCode(): Promise<void> {
   try {
     const code = $("#code").val() as string;

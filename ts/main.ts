@@ -52,6 +52,7 @@ class PlayerListUpdater extends AbstractLobbyListener {
       }
       this.playerList.append(child);
     }
+    Util.setButtonEnabled($("#start-game"), players.length > 0);
   }
 
 }
@@ -88,30 +89,26 @@ function setRC(lobby: HostLobby, payload: RemoteControlMessage): void {
  * Set up the game page. Should be called once after the page is
  * loaded.
  */
-export async function setupNewGame(): Promise<void> {
-  const lobby = await hostLobby(DEFAULT_MAX_PLAYERS);
-  const updater = new PlayerListUpdater(lobby, $("#player-list"));
-  const initSender = new RCInitialSender(lobby);
+export function setupNewGame(): void {
 
-  lobby.addListener(new DebugLobbyListener());
-  lobby.addListener(updater);
-  lobby.addListener(initSender);
+  hostLobby(DEFAULT_MAX_PLAYERS).then((lobby) => {
+    const updater = new PlayerListUpdater(lobby, $("#player-list"));
+    const initSender = new RCInitialSender(lobby);
 
-  updater.update();
-  $("#code").text(lobby.code);
+    lobby.addListener(new DebugLobbyListener());
+    lobby.addListener(updater);
+    lobby.addListener(initSender);
 
-  Util.enterToButton($("#info-message"), $("#send-info-message"));
-  $("#send-info-message").click(() => {
-    const info = $("#info-message").val() as string;
-    const payload = RCPageGenerator.get().infoPage(info);
-    setRC(lobby, payload);
-  });
+    updater.update();
+    $("#code").text(lobby.code);
 
-  Util.enterToButton($("#freeform-message"), $("#send-freeform-message"));
-  $("#send-freeform-message").click(() => {
-    const info = $("#freeform-message").val() as string;
-    const payload = RCPageGenerator.get().freeformPage(info, 'text'); // TODO Make type customizable
-    setRC(lobby, payload);
+    $("#start-game").click(() => {
+      if (lobby.playerCount > 0) {
+        lobby.startGame();
+        console.log("Starting game...");
+      }
+    });
+
   });
 
 }
