@@ -76,12 +76,25 @@ export class RemoteControlFreeformDisplay extends RemoteControlDisplay {
 
   initialize(lobby: GuestLobby) {
     super.initialize(lobby);
+    this.validateAnswerType();
+
     const payload = this.payload as RemoteControlFreeformMessage;
     const questionText = payload.rcParams.questionText;
     render(questionText).then((mdQuestionText) => {
       this.page.find("#question-text").html(mdQuestionText);
     });
-    Util.enterToButton($("#question-answer"), $("#question-submit"));
+    this.page.find("#question-answer").attr("type", payload.rcParams.answerType);
+    Util.enterToButton(this.page.find("#question-answer"), this.page.find("#question-submit"));
+
+  }
+
+  private validateAnswerType(): void {
+    // Validate that the answerType is what it's supposed to be
+    // (before blindly storing it in the HTML).
+    const payload = this.payload as RemoteControlFreeformMessage;
+    if (!["number", "text"].includes(payload.rcParams.answerType)) {
+      throw `Invalid answerType in RemoteControlFreeformDisplay: ${payload.rcParams.answerType}`;
+    }
   }
 
 }
@@ -130,7 +143,10 @@ export interface RemoteControlInfoMessage extends RemoteControlMessage {
 
 export interface RemoteControlFreeformMessage extends RemoteControlMessage {
   rcType: "freeform";
-  rcParams: { questionText: string };
+  rcParams: {
+    questionText: string,
+    answerType: "number" | "text",
+  };
 }
 
 let _pageGenerator: RCPageGenerator | null = null;
@@ -163,11 +179,11 @@ export class RCPageGenerator {
     };
   }
 
-  freeformPage(questionText: string): RemoteControlFreeformMessage {
+  freeformPage(questionText: string, answerType: "number" | "text"): RemoteControlFreeformMessage {
     return {
       rcType: "freeform",
       rcId: this.generateID(),
-      rcParams: { questionText: questionText },
+      rcParams: { questionText, answerType },
     };
   }
 

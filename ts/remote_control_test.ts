@@ -22,7 +22,7 @@ async function setupInfo(): Promise<void> {
 }
 
 async function setupFreeform(): Promise<void> {
-  const freeformMessage = RCPageGenerator.get().freeformPage("This is an example question: $x^2$");
+  const freeformMessage = RCPageGenerator.get().freeformPage("This is an example question: $x^2$", "text");
   await establishPage(freeformMessage, $("#freeform-banner"));
 }
 
