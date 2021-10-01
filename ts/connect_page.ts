@@ -39,6 +39,16 @@ class PingError {
 
 }
 
+function unsetFeedbackMessage(): void {
+  $("#alert-feedback").html('');
+}
+
+function setFeedbackMessage(alertClass: string, message: string): void {
+  $("#alert-feedback").html(`
+    <div class="alert ${alertClass}">${message}</div>
+  `);
+}
+
 async function pingWithCode(): Promise<void> {
   try {
     const code = $("#code").val() as string;
@@ -49,9 +59,7 @@ async function pingWithCode(): Promise<void> {
     if (playerName.length < 1) {
       throw new PingError("Please enter your name");
     }
-    $("#alert-feedback").html(`
-      <div class="alert alert-info">Connecting...</div>
-    `);
+    setFeedbackMessage('alert-info', "Connecting...");
     const lobby = await joinLobby(code.toUpperCase(), playerName);
     if (lobby === undefined) {
       throw new PingError(`There is no lobby with code ${code.toUpperCase()}`);
@@ -59,9 +67,7 @@ async function pingWithCode(): Promise<void> {
     initListeners(lobby);
   } catch (e) {
     if (e instanceof PingError) {
-      $("#alert-feedback").html(`
-        <div class="alert alert-danger">${e.message}</div>
-      `);
+      setFeedbackMessage('alert-danger', e.message);
     } else {
       throw e;
     }
