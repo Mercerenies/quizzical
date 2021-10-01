@@ -5,7 +5,7 @@
  */
 
 import { MessageListener } from './message_dispatcher.js';
-import { DebugLobbyListener } from './debug_lobby_listener.js';
+import { DebugLobbyListener } from './lobby/debug_listener.js';
 import { LobbyMessage } from './lobby/listener.js';
 import { META_MESSAGE_TYPE, GuestLobby, joinLobby, MetaMessage } from './lobby.js';
 import { RemoteControlListener } from './remote_control.js';

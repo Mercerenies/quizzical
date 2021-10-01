@@ -8,7 +8,7 @@ import { SSE, DirectMessage } from './sse.js';
 import { RTC_CONFIG, LOBBY_MESSAGE_TYPE,
          hostLobby, HostLobby } from './lobby.js';
 import { LobbyListener, AbstractLobbyListener, LobbyMessage } from './lobby/listener.js';
-import { DebugLobbyListener } from './debug_lobby_listener.js';
+import { DebugLobbyListener } from './lobby/debug_listener.js';
 import { REMOTE_CONTROL_MESSAGE_TYPE, RCPageGenerator, RemoteControlMessage } from './remote_control.js';
 import { PlayerUUID } from './uuid.js';
 

@@ -5,8 +5,8 @@
  * @module
  */
 
-import { LobbyListener, LobbyMessage } from './lobby/listener.js';
-import { PlayerUUID } from './uuid.js';
+import { LobbyListener, LobbyMessage } from './listener.js';
+import { PlayerUUID } from '../uuid.js';
 
 /**
  * {@link LobbyListener} which simply prints debug messages to console
