@@ -112,6 +112,7 @@ export class RemoteControlFreeformDisplay extends RemoteControlDisplay {
       body: answer,
     };
     const message = lobby.newMessage(QUESTION_RESPONSE_MESSAGE_TYPE, response);
+    lobby.sendMessageTo(lobby.hostId, message);
   }
 
 }
