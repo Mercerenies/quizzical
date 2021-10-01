@@ -13,6 +13,7 @@ import { DebugLobbyListener } from './lobby/debug_listener.js';
 import { REMOTE_CONTROL_MESSAGE_TYPE, RCPageGenerator, RemoteControlMessage } from './remote_control.js';
 import { PlayerUUID } from './uuid.js';
 import * as Util from './util.js';
+import { updateHeader } from './game_play_page.js';
 
 const DEFAULT_MAX_PLAYERS = 4;
 
@@ -92,10 +93,10 @@ async function startGame(lobby: HostLobby): Promise<void> {
 
     const newPage = $(await $.get('/game/play'));
     $("main").replaceWith(newPage);
+    updateHeader(lobby, $("main"));
 
   }
 }
-
 
 /**
  * Set up the game page. Should be called once after the page is
