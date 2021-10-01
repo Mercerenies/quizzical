@@ -12,6 +12,7 @@ import { LobbyMessage } from './lobby/listener.js';
 import { RCID } from './uuid.js';
 import { LFSR } from './lfsr.js';
 import { render } from './renderer.js';
+import { QUESTION_RESPONSE_MESSAGE_TYPE, FreeformResponse } from './question.js';
 import * as Util from './util.js';
 
 export const REMOTE_CONTROL_MESSAGE_TYPE = "RemoteControl.REMOTE_CONTROL_MESSAGE_TYPE";
@@ -90,6 +91,8 @@ export class RemoteControlFreeformDisplay extends RemoteControlDisplay {
     this.page.find("#question-answer").attr("type", payload.rcParams.answerType);
     Util.enterToButton(this.page.find("#question-answer"), this.page.find("#question-submit"));
 
+    this.page.find("#question-submit").click(() => this.sendAnswer(lobby));
+
   }
 
   private validateAnswerType(): void {
@@ -99,6 +102,16 @@ export class RemoteControlFreeformDisplay extends RemoteControlDisplay {
     if (!["number", "text"].includes(payload.rcParams.answerType)) {
       throw `Invalid answerType in RemoteControlFreeformDisplay: ${payload.rcParams.answerType}`;
     }
+  }
+
+  private sendAnswer(lobby: GuestLobby): void {
+    const answer = $("#question-answer").val() as string;
+    const response: FreeformResponse = {
+      rcId: this.payload.rcId,
+      responseType: "freeform",
+      body: answer,
+    };
+    const message = lobby.newMessage(QUESTION_RESPONSE_MESSAGE_TYPE, response);
   }
 
 }

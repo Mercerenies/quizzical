@@ -12,6 +12,7 @@ import { LobbyListener, AbstractLobbyListener, LobbyMessage } from './lobby/list
 import { DebugLobbyListener } from './lobby/debug_listener.js';
 import { REMOTE_CONTROL_MESSAGE_TYPE, RCPageGenerator, RemoteControlMessage } from './remote_control.js';
 import { PlayerUUID } from './uuid.js';
+import * as Util from './util.js';
 
 const DEFAULT_MAX_PLAYERS = 4;
 
@@ -99,9 +100,17 @@ export async function setupNewGame(): Promise<void> {
   updater.update();
   $("#code").text(lobby.code);
 
+  Util.enterToButton($("#info-message"), $("#send-info-message"));
   $("#send-info-message").click(() => {
     const info = $("#info-message").val() as string;
     const payload = RCPageGenerator.get().infoPage(info);
+    setRC(lobby, payload);
+  });
+
+  Util.enterToButton($("#freeform-message"), $("#send-freeform-message"));
+  $("#send-freeform-message").click(() => {
+    const info = $("#freeform-message").val() as string;
+    const payload = RCPageGenerator.get().freeformPage(info, 'text'); // TODO Make type customizable
     setRC(lobby, payload);
   });
 
