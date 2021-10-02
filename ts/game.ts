@@ -4,8 +4,7 @@ import { updateHeader } from './game_play_page.js';
 import { ActiveScreen } from './active_screen.js';
 import { ResponseCollector } from './question/response_collector.js';
 import { Question, NullQuestion } from './question.js';
-import { FreeformQuestion } from './question/freeform_question.js';
-import { ExactAnswer } from './question/answer.js';
+import { QuestionGenerator } from './question/generator.js';
 
 /**
  * The primary manager for the game, from the perspective of the host
@@ -19,6 +18,7 @@ export class Game {
   private activeScreen: ActiveScreen;
   private responseCollector: ResponseCollector;
   private activeQuestion: Question;
+  private generator: QuestionGenerator;
 
   /**
    * A Game is constructed from a lobby. The lobby should not have had
@@ -31,6 +31,8 @@ export class Game {
     this.responseCollector = new ResponseCollector(this.activeScreen);
 
     this.lobby.dispatcher.connect(this.responseCollector);
+
+    this.generator = params.generator;
 
     this.activeQuestion = new NullQuestion();
     this.question = this.activeQuestion; // Update question data
@@ -68,12 +70,13 @@ export class Game {
     $("#end-question").click(() => this.endQuestion());
 
     // DEBUG CODE
-    this.question = new FreeformQuestion("Test question", "number", new ExactAnswer("1"));
+    this.question = this.generator.generate();
 
   }
 
-  endQuestion(): void {
+  private endQuestion(): void {
     console.log(this.responseCollector.getResponses());
+    this.question = this.generator.generate();
   }
 
 }
@@ -84,4 +87,5 @@ export class Game {
 export interface GameParams {
   lobby: HostLobby;
   activeScreen: ActiveScreen;
+  generator: QuestionGenerator;
 }

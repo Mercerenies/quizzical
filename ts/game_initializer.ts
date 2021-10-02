@@ -3,6 +3,7 @@ import { HostLobby } from './lobby.js';
 import { PlayerListUpdater } from './game_initializer/player_list_updater.js';
 import { ActiveScreen } from './active_screen.js';
 import { Game } from './game.js';
+import { QuestionGenerator } from './question/generator.js';
 
 export const DEFAULT_MAX_PLAYERS = 4;
 
@@ -14,11 +15,13 @@ export class GameInitializer {
   readonly lobby: HostLobby;
   private updater: PlayerListUpdater;
   private activeScreen: ActiveScreen;
+  private generator: QuestionGenerator;
 
   constructor(params: GameInitializerParams) {
     this.lobby = params.lobby;
     this.updater = new PlayerListUpdater(this.lobby, params.playerListDOM);
     this.activeScreen = new ActiveScreen(this.lobby);
+    this.generator = params.generator;
 
     this.lobby.connected.connect(this.updater);
     this.lobby.reconnected.connect(this.updater);
@@ -55,6 +58,7 @@ export class GameInitializer {
     const game = new Game({
       lobby: this.lobby,
       activeScreen: this.activeScreen,
+      generator: this.generator,
     });
     await game.begin();
     return game;
@@ -69,4 +73,5 @@ export class GameInitializer {
 export interface GameInitializerParams {
   lobby: HostLobby;
   playerListDOM: JQuery<HTMLElement>;
+  generator: QuestionGenerator;
 }
