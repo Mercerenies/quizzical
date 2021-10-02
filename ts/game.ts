@@ -65,8 +65,15 @@ export class Game {
     updateHeader(this.lobby, $("main"));
 
     // DEBUG CODE
+    $("#end-question").click(() => this.endQuestion());
+
+    // DEBUG CODE
     this.question = new FreeformQuestion("Test question", "number", new ExactAnswer("1"));
 
+  }
+
+  endQuestion(): void {
+    console.log(this.responseCollector.getResponses());
   }
 
 }
