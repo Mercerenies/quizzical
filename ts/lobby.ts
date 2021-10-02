@@ -4,6 +4,7 @@ import { PlayerUUID, PeerUUID } from './uuid.js';
 import { MessageDispatcher } from './message_dispatcher.js';
 import { LobbyListener, LobbyMessage } from './lobby/listener.js';
 import { ConnectedPlayer } from './lobby/connected_player.js';
+import { SignalHandler } from './signal.js';
 
 export const RTC_CONFIG = {'iceServers': [{'urls': 'stun:stun.l.google.com:19302'}]};
 
@@ -84,7 +85,7 @@ export class HostLobby extends Lobby {
     this.maxPlayers = maxPlayers;
     this.gameStarted = false;
 
-    SSE.get().addListener(LOBBY_MESSAGE_TYPE, (message) => this.handleMessage(message));
+    SSE.get().signals.connect(LOBBY_MESSAGE_TYPE, SignalHandler((message) => this.handleMessage(message)));
 
     this.peer.on('open', () => {
       console.log("Peer setup at " + this.peerId);
@@ -261,7 +262,8 @@ export class GuestLobby extends Lobby {
     this.selfId = selfId;
     this.playerName = playerName;
 
-    SSE.get().addListener(LOBBY_MESSAGE_TYPE, (message) => this.handleMessage(message));
+    // TODO Get handleMessage into a proper SignalHandler class. (Also for HostLobby above)
+    SSE.get().signals.connect(LOBBY_MESSAGE_TYPE, SignalHandler((message) => this.handleMessage(message)));
     this.peer.on('open', async () => await this.tryToConnect());
 
   }

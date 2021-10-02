@@ -7,6 +7,7 @@
  */
 
 import { PlayerUUID } from './uuid.js';
+import { SignalMap } from './signal/map.js';
 
 let _sseSingleton: SSE | null = null;
 
@@ -22,11 +23,11 @@ let _sseSingleton: SSE | null = null;
  * direct peer-to-peer communication, not to run the entire game.
  */
 export class SSE {
-  private listeners: Map<string, SSEListener[]>;
+  readonly signals: SignalMap<string, IncomingMessage>;
   private sse: EventSource;
 
   constructor() {
-    this.listeners = new Map();
+    this.signals = new SignalMap();
     this.sse = new EventSource('/sse/listen');
     this.sse.addEventListener('message', (event) => {
       const data = IncomingMessage.fromJSON(JSON.parse(event.data));
@@ -34,41 +35,8 @@ export class SSE {
     });
   }
 
-  /**
-   * Adds a handler for a specific message type.
-   *
-   * @param messageType the type of message to handle
-   * @param listener the listener to handle the message
-   */
-  addListener(messageType: string, listener: SSEListener): void {
-    let listenerList = this.listeners.get(messageType);
-    if (listenerList === undefined) {
-      listenerList = [];
-      this.listeners.set(messageType, listenerList);
-    }
-    listenerList.push(listener);
-  }
-
-  /**
-   * Removes a handler.
-   *
-   * @param messageType the type of message the handler was configured for
-   * @param listener the listener to remove
-   * @return whether the listener was found or not
-   */
-  removeListener(messageType: string, listener: SSEListener): boolean {
-    const listenerList = (this.listeners.get(messageType) ?? []);
-    const index = listenerList.findIndex(function(x) { return x == listener; });
-    if (index >= 0) {
-      listenerList.splice(index, 1);
-      return true;
-    } else {
-      return false;
-    }
-  }
-
   private onMessage(data: IncomingMessage): void {
-    (this.listeners.get(data.messageType) ?? []).forEach(function(listener) { listener(data); });
+    this.signals.dispatch(data.messageType, data);
   }
 
   /**
@@ -90,14 +58,6 @@ export class SSE {
     return _sseSingleton;
   }
 
-}
-
-/**
- * An SSEListener is simply a function which accepts an {@link
- * IncomingMessage}.
- */
-export interface SSEListener {
-  (message: IncomingMessage): void;
 }
 
 /**
