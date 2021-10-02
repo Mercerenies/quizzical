@@ -30,7 +30,7 @@ export class NullQuestion extends Question {
   }
 
   getDisplayable(): Displayable {
-    return new ConstantDisplayable(`<div class="col-md-12"></div>`);
+    return new ConstantDisplayable(`<div class="col-md-12" id="game-row"></div>`);
   }
 
   makeRCMessage(): RemoteControlMessage {
