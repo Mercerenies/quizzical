@@ -19,34 +19,56 @@ const hasOwnProperty = Object.prototype.hasOwnProperty;
 
 export const REMOTE_CONTROL_MESSAGE_TYPE = "RemoteControl.REMOTE_CONTROL_MESSAGE_TYPE";
 
+/**
+ * The translation table, which translates rcType fields to HTTP GET
+ * request targets. The valid rcType field values are defined to be
+ * the keys of this object (i.e. keyof RC_TRANSLATION).
+ */
 export const RC_TRANSLATION = {
   'joined': '/rc/joined',
   'info': '/rc/info',
   'freeform': '/rc/freeform',
 };
 
-// Any DOM element intended as the root of a remote control display
-// can be wrapped in this class, which initializes it with properties
-// specific to this game.
+/**
+ * Any DOM element intended as the root of a remote control display
+ * can be wrapped in this class, which initializes it with properties
+ * specific to this game.
+ */
 export class RemoteControlDisplay {
   readonly payload: RemoteControlMessage;
   readonly page: JQuery<HTMLElement>;
 
-  // Note: You probably meant to use RemoteControlDisplay.createFrom,
-  // which will intelligently construct an instance of a smarter
-  // subclass.
+  /**
+   * Constructs a raw RemoteControlDisplay.
+   *
+   * Note: You probably meant to use RemoteControlDisplay.createFrom,
+   * which will intelligently construct an instance of a smarter
+   * subclass.
+   */
   constructor(payload: RemoteControlMessage, page: JQuery<HTMLElement>) {
     this.payload = payload;
     this.page = page;
   }
 
-  // Set up the parameters on the page from the lobby.
+  /**
+   * Set up the parameters on the page from the lobby. Subclasses
+   * frequently extend this method's functionality to provide
+   * form-specific initialization.
+   */
   initialize(lobby: GuestLobby): void {
     this.page.find("#player-name").text(lobby.playerName);
     this.page.find("#game-code").text(lobby.code);
     this.page.data("rcid", this.payload.rcId);
   }
 
+  /**
+   * Constructs a RemoteControlDisplay subclass most appropriate to
+   * the payload's rcType field.
+   *
+   * @param payload the message
+   * @param page the <main> page to augment
+   */
   static createFrom(payload: RemoteControlMessage, page: JQuery<HTMLElement>): RemoteControlDisplay {
     switch (payload.rcType) {
     case 'joined':
@@ -60,10 +82,16 @@ export class RemoteControlDisplay {
 
 }
 
+/**
+ * A RemoteControlDisplay for the "joined" RC type.
+ */
 export class RemoteControlJoinedDisplay extends RemoteControlDisplay {
   readonly rcType: keyof typeof RC_TRANSLATION = "joined";
 }
 
+/**
+ * A RemoteControlDisplay for the "info" RC type.
+ */
 export class RemoteControlInfoDisplay extends RemoteControlDisplay {
   readonly rcType: keyof typeof RC_TRANSLATION = "info";
 
@@ -78,6 +106,9 @@ export class RemoteControlInfoDisplay extends RemoteControlDisplay {
 
 }
 
+/**
+ * A RemoteControlDisplay for the "freeform" RC type.
+ */
 export class RemoteControlFreeformDisplay extends RemoteControlDisplay {
   readonly rcType: keyof typeof RC_TRANSLATION = "freeform";
 
@@ -119,6 +150,10 @@ export class RemoteControlFreeformDisplay extends RemoteControlDisplay {
 
 }
 
+/**
+ * A SignalHandler which displays remote control screens, based on
+ * received messages of type REMOTE_CONTROL_MESSAGE_TYPE.
+ */
 export class RemoteControlListener implements SignalHandler<LobbyMessage> {
   readonly messageType: string = REMOTE_CONTROL_MESSAGE_TYPE;
   private lobby: GuestLobby;
@@ -147,21 +182,34 @@ export class RemoteControlListener implements SignalHandler<LobbyMessage> {
 
 }
 
+/**
+ * The payload of a lobby message whose message type is
+ * REMOTE_CONTROL_MESSAGE_TYPE.
+ */
 export interface RemoteControlMessage {
   rcType: keyof typeof RC_TRANSLATION;
   rcId: RCID;
   rcParams: unknown;
 }
 
+/**
+ * A message for a "joined" display.
+ */
 export interface RemoteControlJoinedMessage extends RemoteControlMessage {
   rcType: "joined";
 }
 
+/**
+ * A message for an "info" display.
+ */
 export interface RemoteControlInfoMessage extends RemoteControlMessage {
   rcType: "info";
   rcParams: { info: string };
 }
 
+/**
+ * A message for a "freeform" display.
+ */
 export interface RemoteControlFreeformMessage extends RemoteControlMessage {
   rcType: "freeform";
   rcParams: {
@@ -172,7 +220,10 @@ export interface RemoteControlFreeformMessage extends RemoteControlMessage {
 
 let _pageGenerator: RCPageGenerator | null = null;
 
-// Singleton class
+/**
+ * A singleton helper for constructing RemoteControlMessage objects
+ * (or subtypes thereof).
+ */
 export class RCPageGenerator {
   private lfsr: LFSR;
   private joinedID: RCID;

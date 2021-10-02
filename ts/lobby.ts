@@ -164,7 +164,8 @@ export class HostLobby extends Lobby {
     conn.on('data', (data) => this.onMessage(uuid, data));
     conn.on('close', () => this.onConnectionClosed(conn));
 
-    // Give the other side a second to set up comms
+    // Give the other side a second to set up comms (TODO This is too
+    // early and doesn't work very often)
     window.setTimeout(() => {
       if (isReconnect) {
         this.reconnected.dispatch(uuid);
