@@ -1,7 +1,7 @@
 
 import { RCID } from './uuid.js';
-import { RemoteControlMessage } from './remote_control.js';
-import { Displayable } from './displayable.js';
+import { RemoteControlMessage, RCPageGenerator } from './remote_control.js';
+import { Displayable, ConstantDisplayable } from './displayable.js';
 
 export const QUESTION_RESPONSE_MESSAGE_TYPE = "Question.QUESTION_RESPONSE_MESSAGE_TYPE";
 
@@ -18,4 +18,16 @@ export interface FreeformResponse extends QuestionResponse {
 export abstract class Question {
   abstract getDisplayable(): Displayable;
   abstract makeRCMessage(): RemoteControlMessage;
+}
+
+export class NullQuestion extends Question {
+
+  getDisplayable(): Displayable {
+    return new ConstantDisplayable(`<div class="col-md-12"></div>`);
+  }
+
+  makeRCMessage(): RemoteControlMessage {
+    return RCPageGenerator.get().joinedPage();
+  }
+
 }
