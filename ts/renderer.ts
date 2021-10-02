@@ -22,7 +22,7 @@ const MARKED_OPTIONS = {
  * function explicitly, as the render function will call it
  * automatically if the renderer is uninitialized.
  */
-export function initialize() {
+export function initialize(): void {
   if (_initialized) {
     return;
   }

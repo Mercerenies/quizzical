@@ -7,7 +7,7 @@
 import { initialize, render } from './renderer.js';
 import * as Util from './util.js';
 
-export function renderTest() {
+export function renderTest(): void {
 
   initialize();
   Util.enterToButton($("#text"), $("#submit"));
@@ -19,7 +19,7 @@ export function renderTest() {
       $("#html-preload").html(cleanedPreload);
     });
 
-  const dirty = "<div><script src='dangerous.js'><\/script></div><p>test</p>";
+  const dirty = "<div><script src='dangerous.js'></script></div><p>test</p>";
   const clean = DOMPurify.sanitize(dirty);
   console.log(dirty);
   console.log(clean);

@@ -46,10 +46,23 @@ export interface LobbyListener {
  * bodies for all required methods.
  */
 export class AbstractLobbyListener implements LobbyListener {
-  onMessage(message: LobbyMessage): void {}
-  onConnect(player: PlayerUUID): void {}
-  onDisconnect(player: PlayerUUID): void {}
-  onReconnect(player: PlayerUUID): void {}
+
+  onMessage(_message: LobbyMessage): void {
+    // Pass
+  }
+
+  onConnect(_player: PlayerUUID): void {
+    // Pass
+  }
+
+  onDisconnect(_player: PlayerUUID): void {
+    // Pass
+  }
+
+  onReconnect(_player: PlayerUUID): void {
+    // Pass
+  }
+
 }
 
 /**

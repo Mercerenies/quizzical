@@ -32,7 +32,7 @@ export function setupNewGame(): void {
 
   hostLobby(DEFAULT_MAX_PLAYERS).then((lobby) => {
     const updater = new PlayerListUpdater(lobby, $("#player-list"));
-    const activeScreen = new ActiveScreen(lobby);
+    const _activeScreen = new ActiveScreen(lobby);
 
     lobby.addListener(new DebugLobbyListener());
     lobby.addListener(updater);

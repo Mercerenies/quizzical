@@ -4,7 +4,6 @@ import { PlayerUUID, PeerUUID } from './uuid.js';
 import { MessageDispatcher } from './message_dispatcher.js';
 import { LobbyListener, LobbyMessage } from './lobby/listener.js';
 import { ConnectedPlayer } from './lobby/connected_player.js';
-import { RemoteControlMessage, RCPageGenerator, REMOTE_CONTROL_MESSAGE_TYPE } from './remote_control.js';
 
 export const RTC_CONFIG = {'iceServers': [{'urls': 'stun:stun.l.google.com:19302'}]};
 
@@ -59,7 +58,7 @@ export abstract class Lobby {
   }
 
   removeListener(listener: LobbyListener): boolean {
-    let index = this.listeners.findIndex(function(x) { return x == listener; });
+    const index = this.listeners.findIndex(function(x) { return x == listener; });
     if (index >= 0) {
       this.listeners.splice(index, 1);
       return true;
@@ -109,7 +108,7 @@ export class HostLobby extends Lobby {
   }
 
   get playerCount(): number {
-    return [...this.players].length
+    return [...this.players].length;
   }
 
   hasGameStarted(): boolean {
@@ -211,16 +210,16 @@ export class HostLobby extends Lobby {
 
   private async handleMessage(message: IncomingMessage): Promise<void> {
     switch (message.message.type) {
-      case "get-peer-id":
-        const response = new DirectMessage(message.source, LOBBY_MESSAGE_TYPE, { type: "response-peer-id", id: this.peerId });
-        SSE.get().sendMessage(response);
-        break;
+    case "get-peer-id":
+      const response = new DirectMessage(message.source, LOBBY_MESSAGE_TYPE, { type: "response-peer-id", id: this.peerId });
+      SSE.get().sendMessage(response);
+      break;
     }
   }
 
   private onMessage(source: PlayerUUID, message: LobbyMessage): void {
     // Ensure that the source attribute is correct.
-    let newMessage = {
+    const newMessage = {
       source: source,
       messageType: message.messageType,
       message: message.message,
@@ -272,25 +271,25 @@ export class GuestLobby extends Lobby {
 
   private async handleMessage(message: IncomingMessage): Promise<void> {
     switch (message.message.type) {
-      case "response-peer-id":
-        const selfId = this.selfId;
-        const peerId = message.message.id;
-        console.log("Got peer ID " + peerId);
-        const metadata: InitMetadata = { uuid: selfId, playerName: this.playerName };
-        const conn = this.peer.connect(peerId, { metadata: metadata });
-        conn.on('open', () => {
-          console.log("Got connection");
-          this.conn = conn;
-          conn.on('data', (data) => this.onMessage(data));
-          this.dispatchOnListeners((listener) => listener.onConnect(this.hostId));
-        });
-        break;
+    case "response-peer-id":
+      const selfId = this.selfId;
+      const peerId = message.message.id as string;
+      console.log("Got peer ID " + peerId);
+      const metadata: InitMetadata = { uuid: selfId, playerName: this.playerName };
+      const conn = this.peer.connect(peerId, { metadata: metadata });
+      conn.on('open', () => {
+        console.log("Got connection");
+        this.conn = conn;
+        conn.on('data', (data) => this.onMessage(data));
+        this.dispatchOnListeners((listener) => listener.onConnect(this.hostId));
+      });
+      break;
     }
   }
 
   private onMessage(message: LobbyMessage): void {
     // Ensure that the source attribute is correct.
-    let newMessage = {
+    const newMessage = {
       source: this.hostId,
       messageType: message.messageType,
       message: message.message,

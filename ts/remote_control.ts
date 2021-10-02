@@ -39,7 +39,7 @@ export class RemoteControlDisplay {
   }
 
   // Set up the parameters on the page from the lobby.
-  initialize(lobby: GuestLobby) {
+  initialize(lobby: GuestLobby): void {
     this.page.find("#player-name").text(lobby.playerName);
     this.page.find("#game-code").text(lobby.code);
     this.page.data("rcid", this.payload.rcId);
@@ -47,12 +47,12 @@ export class RemoteControlDisplay {
 
   static createFrom(payload: RemoteControlMessage, page: JQuery<HTMLElement>): RemoteControlDisplay {
     switch (payload.rcType) {
-      case 'joined':
-        return new RemoteControlJoinedDisplay(payload, page);
-      case 'info':
-        return new RemoteControlInfoDisplay(payload, page);
-      case 'freeform':
-        return new RemoteControlFreeformDisplay(payload, page);
+    case 'joined':
+      return new RemoteControlJoinedDisplay(payload, page);
+    case 'info':
+      return new RemoteControlInfoDisplay(payload, page);
+    case 'freeform':
+      return new RemoteControlFreeformDisplay(payload, page);
     }
   }
 
@@ -65,7 +65,7 @@ export class RemoteControlJoinedDisplay extends RemoteControlDisplay {
 export class RemoteControlInfoDisplay extends RemoteControlDisplay {
   readonly rcType: keyof typeof RC_TRANSLATION = "info";
 
-  initialize(lobby: GuestLobby) {
+  initialize(lobby: GuestLobby): void {
     super.initialize(lobby);
     const payload = this.payload as RemoteControlInfoMessage;
     const info = payload.rcParams.info;
@@ -79,7 +79,7 @@ export class RemoteControlInfoDisplay extends RemoteControlDisplay {
 export class RemoteControlFreeformDisplay extends RemoteControlDisplay {
   readonly rcType: keyof typeof RC_TRANSLATION = "freeform";
 
-  initialize(lobby: GuestLobby) {
+  initialize(lobby: GuestLobby): void {
     super.initialize(lobby);
     this.validateAnswerType();
 
@@ -135,7 +135,7 @@ export class RemoteControlListener implements MessageListener {
     const pageURL = RC_TRANSLATION[payload.rcType];
 
     $.get(pageURL).then((page) => {
-      let display = RemoteControlDisplay.createFrom(payload, $(page));
+      const display = RemoteControlDisplay.createFrom(payload, $(page));
       display.initialize(this.lobby);
       $("main").replaceWith(display.page);
     });
@@ -147,7 +147,7 @@ export class RemoteControlListener implements MessageListener {
 export interface RemoteControlMessage {
   rcType: keyof typeof RC_TRANSLATION;
   rcId: RCID;
-  rcParams: {};
+  rcParams: Record<string, unknown>;
 }
 
 export interface RemoteControlJoinedMessage extends RemoteControlMessage {

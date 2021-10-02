@@ -13,7 +13,6 @@ import { ConnectedPlayer } from './lobby/connected_player.js';
  * Updates the header bar containing the players' information.
  */
 export function updateHeader(lobby: HostLobby, page: JQuery<HTMLElement>): void {
-  const playerCount = lobby.playerCount;
   const header = page.find("#player-status-header");
 
   header.html('');

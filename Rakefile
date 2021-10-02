@@ -14,3 +14,7 @@ end
 task :tsdoc do
   sh 'typedoc', *Dir.glob("./ts/**/*.ts")
 end
+
+task :eslint do
+  sh 'npx', 'eslint', 'ts/'
+end

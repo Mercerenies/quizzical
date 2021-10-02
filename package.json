@@ -5,6 +5,12 @@
     "@types/marked": "^3.0.1",
     "@types/mathjax": "0.0.37",
     "@types/peerjs": "^1.1.0",
-    "marked": "^3.0.4"
+    "marked": "^3.0.4",
+    "typescript": "^4.4.3"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.32.0",
+    "@typescript-eslint/parser": "^4.32.0",
+    "eslint": "^7.32.0"
   }
 }

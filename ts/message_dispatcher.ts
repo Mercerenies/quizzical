@@ -5,7 +5,6 @@
  * @module message_dispatcher
  */
 
-import { PlayerUUID } from './uuid.js';
 import { AbstractLobbyListener, LobbyMessage } from './lobby/listener.js';
 
 /**
