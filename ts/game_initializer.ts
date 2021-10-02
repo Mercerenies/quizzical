@@ -2,7 +2,7 @@
 import { HostLobby } from './lobby.js';
 import { PlayerListUpdater } from './game_initializer/player_list_updater.js';
 import { ActiveScreen } from './active_screen.js';
-import { updateHeader } from './game_play_page.js';
+import { Game } from './game.js';
 
 export const DEFAULT_MAX_PLAYERS = 4;
 
@@ -33,19 +33,27 @@ export class GameInitializer {
   }
 
   /**
-   * Starts the game proper.
+   * Starts the game proper. If canStartGame is false, this returns
+   * undefined. If canStartGame is true, this initializes a Game
+   * object, begins the game, and returns the Game object.
+   *
+   * After a successful call to this function, the GameInitializer
+   * automatically unregisters all of its lobby listeners and should
+   * generally no longer be used.
    */
-  async startGame(): Promise<void> {
+  async startGame(): Promise<Game | undefined> {
     if (!this.canStartGame()) {
       return;
     }
 
-    this.lobby.startGame();
-    console.log("Starting game...");
+    this.lobby.removeListener(this.updater);
 
-    const newPage = $(await $.get('/game/play'));
-    $("main").replaceWith(newPage);
-    updateHeader(this.lobby, $("main"));
+    const game = new Game({
+      lobby: this.lobby,
+      activeScreen: this.activeScreen,
+    });
+    await game.begin();
+    return game;
 
   }
 
