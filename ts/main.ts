@@ -5,57 +5,12 @@
  * @module main
  */
 
-import { SSE, DirectMessage } from './sse.js';
-import { RTC_CONFIG, LOBBY_MESSAGE_TYPE,
-         hostLobby, HostLobby } from './lobby.js';
-import { LobbyListener, AbstractLobbyListener, LobbyMessage } from './lobby/listener.js';
+import { hostLobby, HostLobby } from './lobby.js';
 import { DebugLobbyListener } from './lobby/debug_listener.js';
-import { REMOTE_CONTROL_MESSAGE_TYPE, RCPageGenerator, RemoteControlMessage } from './remote_control.js';
-import { PlayerUUID } from './uuid.js';
-import * as Util from './util.js';
 import { updateHeader } from './game_play_page.js';
 import { ActiveScreen } from './active_screen.js';
-
-const DEFAULT_MAX_PLAYERS = 4;
-
-class PlayerListUpdater extends AbstractLobbyListener {
-  private lobby: HostLobby;
-  private playerList: JQuery<HTMLElement>
-
-  constructor(lobby: HostLobby, playerList: JQuery<HTMLElement>) {
-    super();
-    this.lobby = lobby;
-    this.playerList = playerList;
-  }
-
-  onConnect(): void {
-    this.update();
-  }
-
-  onDisconnect(): void {
-    this.update();
-  }
-
-  onReconnect(): void {
-    this.update();
-  }
-
-  update(): void {
-    this.playerList.empty();
-    const players = this.lobby.players;
-    for (let index = 0; index < this.lobby.maxPlayers; index++) {
-      let child: JQuery<HTMLElement>;
-      if (index < players.length) {
-        child = $(`<li class="list-group-item">${players[index].playerName}</li>`);
-      } else {
-        child = $('<li class="list-group-item">(Empty)</li>');
-      }
-      this.playerList.append(child);
-    }
-    Util.setButtonEnabled($("#start-game"), players.length > 0);
-  }
-
-}
+import { DEFAULT_MAX_PLAYERS } from './game_initializer.js';
+import { PlayerListUpdater } from './game_initializer/player_list_updater.js';
 
 async function startGame(lobby: HostLobby): Promise<void> {
   if (lobby.playerCount > 0) {
