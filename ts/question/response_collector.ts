@@ -49,6 +49,14 @@ export class ResponseCollector implements SignalHandler<LobbyMessage> {
     }
   }
 
+  getResponses(): Array<[PlayerUUID, QuestionResponse]> {
+    return [...this.collectedResponses];
+  }
+
+  getResponse(player: PlayerUUID): QuestionResponse | undefined {
+    return this.collectedResponses.get(player);
+  }
+
 }
 
 /**
