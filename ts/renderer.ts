@@ -30,7 +30,9 @@ export function initialize(): void {
   // TODO Integration with highlight.js?
 
   marked.setOptions(MARKED_OPTIONS);
-  marked.use({ extensions: [InlineLatex as any, BlockLatex as any] }); // TODO Why does Typescript not like this type?
+  // TODO Why does Typescript not like this type?
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  marked.use({ extensions: [InlineLatex as any, BlockLatex as any] });
 
   _initialized = true;
 }
@@ -80,6 +82,8 @@ export const InlineLatex = {
   renderer(token: InlineLatexToken): string {
     // TODO The DefinitelyTyped bindings for MathJax don't recognize
     // this function. What can we do about it?
+    //
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const mml = (MathJax as any).tex2mml(token.inlineLatex, { display: false });
     return mml;
   },
@@ -118,6 +122,8 @@ export const BlockLatex = {
   renderer(token: BlockLatexToken): string {
     // TODO The DefinitelyTyped bindings for MathJax don't recognize
     // this function. What can we do about it?
+    //
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const mml = (MathJax as any).tex2mml(token.blockLatex, { display: true });
     return mml;
   },
