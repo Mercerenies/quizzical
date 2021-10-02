@@ -39,7 +39,7 @@ class PingError {
 
 }
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable-next-line @typescript-eslint/no-unused-vars */
 function unsetFeedbackMessage(): void {
   $("#alert-feedback").html('');
 }
