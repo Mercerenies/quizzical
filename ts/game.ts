@@ -2,9 +2,9 @@
 import { HostLobby } from './lobby.js';
 import { updateHeader } from './game_play_page.js';
 import { ActiveScreen } from './active_screen.js';
-import { RCPageGenerator } from './remote_control.js';
 import { ResponseCollector } from './question/response_collector.js';
-import { Question } from './question.js';
+import { Question, NullQuestion } from './question.js';
+import { FreeformQuestion } from './question/freeform_question.js';
 
 /**
  * The primary manager for the game, from the perspective of the host
@@ -17,7 +17,7 @@ export class Game {
   readonly lobby: HostLobby;
   private activeScreen: ActiveScreen;
   private responseCollector: ResponseCollector;
-  private activeQuestion: Question | undefined;
+  private activeQuestion: Question;
 
   /**
    * A Game is constructed from a lobby. The lobby should not have had
@@ -31,15 +31,25 @@ export class Game {
 
     this.lobby.dispatcher.connect(this.responseCollector);
 
+    this.activeQuestion = new NullQuestion();
+    this.question = this.activeQuestion; // Update question data
   }
 
-  get question(): Question | undefined {
+  get question(): Question {
     return this.activeQuestion;
   }
 
-  set question(question: Question | undefined) {
-    /////
-    // TODO Not implemented yet
+  set question(question: Question) {
+    this.activeQuestion = question;
+
+    // Display host-side info
+    const displayable = question.getDisplayable();
+    displayable.display($("#game-row"));
+
+    // Send guest-side info
+    const rcMessage = question.makeRCMessage();
+    this.activeScreen.screen = rcMessage;
+
   }
 
   /**
@@ -54,7 +64,7 @@ export class Game {
     updateHeader(this.lobby, $("main"));
 
     // DEBUG CODE
-    this.activeScreen.screen = RCPageGenerator.get().freeformPage("Test question", "number");
+    this.question = new FreeformQuestion("Test question", "number");
 
   }
 
