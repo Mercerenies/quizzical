@@ -7,7 +7,7 @@
  */
 
 import { GuestLobby } from './lobby.js';
-import { MessageListener } from './message_dispatcher.js';
+import { SignalHandler } from './signal.js';
 import { LobbyMessage } from './lobby/listener.js';
 import { RCID } from './uuid.js';
 import { LFSR } from './lfsr.js';
@@ -119,7 +119,7 @@ export class RemoteControlFreeformDisplay extends RemoteControlDisplay {
 
 }
 
-export class RemoteControlListener implements MessageListener {
+export class RemoteControlListener implements SignalHandler<LobbyMessage> {
   readonly messageType: string = REMOTE_CONTROL_MESSAGE_TYPE;
   private lobby: GuestLobby;
 
@@ -127,7 +127,7 @@ export class RemoteControlListener implements MessageListener {
     this.lobby = lobby;
   }
 
-  onMessage(message: LobbyMessage): void {
+  handle(message: LobbyMessage): void {
     const payload = asRCMessage(message.message);
 
     if (payload === undefined) {

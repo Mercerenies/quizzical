@@ -1,73 +1,10 @@
 
+// TODO Rename this module to lobby/message.ts
+
 import { PlayerUUID } from '../uuid.js';
 
 /**
- * A listener which responds to events sent by the game's lobby.
- *
- * Some of the listener's messages only fire on specific peers. In
- * particular, some messages will fire on both host and guest peers,
- * while some only fire on host peers. The documentation for the
- * particular function indicates which peer types an event will fire
- * for.
- */
-export interface LobbyListener {
-
-  /**
-   * Fires whenever a message is received from a peer. This event
-   * type fires on all peers.
-   */
-  onMessage(message: LobbyMessage): void;
-
-  /**
-   * Fires when a new peer connects for the first time this session.
-   * For the host, this implies that a player has just connected. For
-   * a guest, this implies that the connection to the lobby host has
-   * just been established successfully. This event fires on all
-   * peers.
-   */
-  onConnect(player: PlayerUUID): void;
-
-  /**
-   * Fires when a peer disconnects. This event only fires on the host
-   * of the lobby.
-   */
-  onDisconnect(player: PlayerUUID): void;
-
-  /**
-   * Fires when a peer who was already connected before reconnects to
-   * the lobby. This event only fires on the host of the lobby.
-   */
-  onReconnect(player: PlayerUUID): void;
-
-}
-
-/**
- * A minimal implementation of {@link LobbyListener} with blank method
- * bodies for all required methods.
- */
-export class AbstractLobbyListener implements LobbyListener {
-
-  onMessage(_message: LobbyMessage): void {
-    // Pass
-  }
-
-  onConnect(_player: PlayerUUID): void {
-    // Pass
-  }
-
-  onDisconnect(_player: PlayerUUID): void {
-    // Pass
-  }
-
-  onReconnect(_player: PlayerUUID): void {
-    // Pass
-  }
-
-}
-
-/**
- * A message from the lobby, to be passed to {@link
- * LobbyListener.onMessage}.
+ * A message from a peer in the lobby.
  */
 export interface LobbyMessage {
 

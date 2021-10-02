@@ -29,7 +29,7 @@ export class Game {
     this.activeScreen = params.activeScreen;
     this.responseCollector = new ResponseCollector(this.activeScreen);
 
-    this.lobby.dispatcher.addListener(this.responseCollector);
+    this.lobby.dispatcher.connect(this.responseCollector);
 
   }
 

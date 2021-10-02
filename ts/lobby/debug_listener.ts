@@ -9,7 +9,7 @@ import { Lobby } from '../lobby.js';
 import { SignalHandler } from '../signal.js';
 
 /**
- * {@link LobbyListener} which simply prints debug messages to console
+ * Signal handler which simply prints debug messages to console
  * whenever it receives any event.
  */
 export class DebugLobbyListener implements SignalHandler<unknown> { // TODO Move this out of lobby/ subfolder

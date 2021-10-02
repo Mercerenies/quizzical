@@ -7,6 +7,7 @@
 
 import { LobbyMessage } from './lobby/listener.js';
 import { SignalHandler } from './signal.js';
+import { SignalMap } from './signal/map.js';
 
 /**
  * MessageDispatcher is a signal handler which handles messages from
@@ -18,78 +19,27 @@ import { SignalHandler } from './signal.js';
  * for efficiency reasons.
  */
 export class MessageDispatcher implements SignalHandler<LobbyMessage> {
-  private listeners: Map<string, MessageListener[]>;
+  readonly signals: SignalMap<string, LobbyMessage> = new SignalMap();
 
-  constructor() {
-    this.listeners = new Map();
+  connect(name: string, handler: SignalHandler<LobbyMessage>): void;
+  connect(handler: SignalHandler<LobbyMessage> & { readonly messageType: string }): void;
+  connect(arg1: string | (SignalHandler<LobbyMessage> & { readonly messageType: string }), arg2?: SignalHandler<LobbyMessage>): void {
+    if (typeof arg1 === 'object') {
+      const name = arg1.messageType;
+      const handler = arg1;
+      this.signals.connect(name, handler);
+    } else if (arg2 !== undefined) {
+      const name = arg1;
+      const handler = arg2;
+      this.signals.connect(name, handler);
+    } else {
+      // Should be impossible from the overload signatures!
+      throw "Invalid arguments to MessageDispatcher.connect";
+    }
   }
 
   handle(message: LobbyMessage): void {
-    (this.listeners.get(message.messageType) ?? []).forEach(function(listener) {
-      listener.onMessage(message);
-    });
+    this.signals.dispatch(message.messageType, message);
   }
 
-  /**
-   * Adds a message listener.
-   */
-  addListener(listener: MessageListener): void {
-    const messageType = listener.messageType;
-    let listenerList = this.listeners.get(messageType);
-    if (listenerList === undefined) {
-      listenerList = [];
-      this.listeners.set(messageType, listenerList);
-    }
-    listenerList.push(listener);
-  }
-
-  /**
-   * Removes a message listener.
-   *
-   * @return whether the listener was found in the handler list
-   */
-  removeListener(listener: MessageListener): boolean {
-    const messageType = listener.messageType;
-    const listenerList = (this.listeners.get(messageType) ?? []);
-    const index = listenerList.findIndex(function(x) { return x == listener; });
-    if (index >= 0) {
-      listenerList.splice(index, 1);
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-}
-
-/**
- * A message listener can respond to messages of a particular type.
- */
-export interface MessageListener {
-
-  /**
-   * The type of message that can be responded to.
-   */
-  readonly messageType: string;
-
-  /**
-   * The handler method.
-   */
-  onMessage(message: LobbyMessage): void;
-
-}
-
-/**
- * Constructs a MessageListener from a message type and a function.
- *
- * Any object which satisfies the MessageListener interface is a valid
- * listener. This function is merely a convenient helper for
- * constructing such objects, but it is by no means mandatory to use
- * this function to do so.
- */
-export function MessageListener(messageType: string, func: (message: LobbyMessage) => void): MessageListener {
-  return {
-    messageType: messageType,
-    onMessage: func,
-  };
 }

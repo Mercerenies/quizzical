@@ -1,6 +1,6 @@
 
 import { QuestionResponse, QUESTION_RESPONSE_MESSAGE_TYPE } from '../question.js';
-import { MessageListener } from '../message_dispatcher.js';
+import { SignalHandler } from '../signal.js';
 import { LobbyMessage } from '../lobby/listener.js';
 import { PlayerUUID, RCID } from '../uuid.js';
 
@@ -11,7 +11,7 @@ import { PlayerUUID, RCID } from '../uuid.js';
  * up-to-date response (for the current question) and for purging old
  * responses when they become outdated.
  */
-export class ResponseCollector implements MessageListener {
+export class ResponseCollector implements SignalHandler<LobbyMessage> {
   readonly messageType: string = QUESTION_RESPONSE_MESSAGE_TYPE;
   private collectedResponses: Map<PlayerUUID, QuestionResponse>;
   private screen: HasActiveRCID;
@@ -36,7 +36,7 @@ export class ResponseCollector implements MessageListener {
     }
   }
 
-  onMessage(message: LobbyMessage): void {
+  handle(message: LobbyMessage): void {
     this.purgeIfNeeded();
 
     const player = message.source;

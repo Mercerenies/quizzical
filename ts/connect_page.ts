@@ -4,14 +4,14 @@
  * @module connect_page
  */
 
-import { MessageListener } from './message_dispatcher.js';
 import { setupDebugListener } from './lobby/debug_listener.js';
 import { LobbyMessage } from './lobby/listener.js';
 import { META_MESSAGE_TYPE, GuestLobby, joinLobby, MetaMessage } from './lobby.js';
 import { RemoteControlListener } from './remote_control.js';
 import * as Util from './util.js';
+import { SignalHandler } from './signal.js';
 
-class ConnectStatusUpdater implements MessageListener {
+class ConnectStatusUpdater implements SignalHandler<LobbyMessage> {
   readonly messageType: string = META_MESSAGE_TYPE;
   private statusField: JQuery<HTMLElement>;
   private lobby: GuestLobby;
@@ -21,7 +21,7 @@ class ConnectStatusUpdater implements MessageListener {
     this.lobby = lobby;
   }
 
-  onMessage(message: LobbyMessage): void {
+  handle(message: LobbyMessage): void {
     const payload = message.message as MetaMessage;
     if (payload.result == 'error') {
       alert(`Error connecting: ${payload.error}`);
@@ -80,8 +80,8 @@ async function pingWithCode(): Promise<void> {
 
 function initListeners(lobby: GuestLobby): void {
   setupDebugListener(lobby);
-  lobby.dispatcher.addListener(new ConnectStatusUpdater($("#connection-status"), lobby)); // TODO Remove this
-  lobby.dispatcher.addListener(new RemoteControlListener(lobby));
+  lobby.dispatcher.connect(new ConnectStatusUpdater($("#connection-status"), lobby)); // TODO Remove this
+  lobby.dispatcher.connect(new RemoteControlListener(lobby));
 }
 
 /**
