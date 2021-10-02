@@ -4,6 +4,7 @@ import { updateHeader } from './game_play_page.js';
 import { ActiveScreen } from './active_screen.js';
 import { RCPageGenerator } from './remote_control.js';
 import { ResponseCollector } from './question/response_collector.js';
+import { Question } from './question.js';
 
 /**
  * The primary manager for the game, from the perspective of the host
@@ -16,6 +17,7 @@ export class Game {
   readonly lobby: HostLobby;
   private activeScreen: ActiveScreen;
   private responseCollector: ResponseCollector;
+  private activeQuestion: Question | undefined;
 
   /**
    * A Game is constructed from a lobby. The lobby should not have had
@@ -29,6 +31,15 @@ export class Game {
 
     this.lobby.dispatcher.addListener(this.responseCollector);
 
+  }
+
+  get question(): Question | undefined {
+    return this.activeQuestion;
+  }
+
+  set question(question: Question | undefined) {
+    /////
+    // TODO Not implemented yet
   }
 
   /**

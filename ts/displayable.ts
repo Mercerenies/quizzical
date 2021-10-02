@@ -26,22 +26,18 @@ export class ConstantDisplayable implements Displayable {
 
 export class HTTPGetDisplayable implements Displayable {
   readonly httpTarget: string;
-  readonly callback: (elt: JQuery<HTMLElement>) => void;
 
-  constructor(target: string, callback?: (elt: JQuery<HTMLElement>) => void) {
+  constructor(target: string) {
     this.httpTarget = target;
-    if (callback === undefined) {
-      this.callback = function() {
-        // No action.
-      };
-    } else {
-      this.callback = callback;
-    }
+  }
+
+  callback(_element: JQuery<HTMLElement>): Promise<void> {
+    return Promise.resolve(undefined);
   }
 
   async display(target: JQuery<HTMLElement>): Promise<void> {
     const replacement = await $.get(this.httpTarget);
-    this.callback(replacement);
+    await this.callback(replacement);
     target.replaceWith(replacement);
   }
 

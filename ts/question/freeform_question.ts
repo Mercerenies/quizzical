@@ -1,7 +1,8 @@
 
 import { RemoteControlMessage, RCPageGenerator } from '../remote_control.js';
 import { Question } from '../question.js';
-import { Displayable } from '../displayable.js';
+import { Displayable, HTTPGetDisplayable } from '../displayable.js';
+import { render } from '../renderer.js';
 
 export class FreeformQuestion extends Question {
   readonly questionText: string;
@@ -14,12 +15,26 @@ export class FreeformQuestion extends Question {
   }
 
   getDisplayable(): Displayable {
-    /////
-    throw "Not implemented yet";
+    return new FreeformQuestionDisplayable(this);
   }
 
   makeRCMessage(): RemoteControlMessage {
     return RCPageGenerator.get().freeformPage(this.questionText, this.answerType);
+  }
+
+}
+
+export class FreeformQuestionDisplayable extends HTTPGetDisplayable {
+  private question: FreeformQuestion;
+
+  constructor(question: FreeformQuestion) {
+    super("/display/freeform");
+    this.question = question;
+  }
+
+  async callback(element: JQuery<HTMLElement>): Promise<void> {
+    const questionText = await render(this.question.questionText);
+    element.find("#question-text").html(questionText);
   }
 
 }

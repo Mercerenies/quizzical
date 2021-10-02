@@ -81,6 +81,10 @@ get '/rc/freeform' do
   erb :'remote_control/freeform_question', layout: false
 end
 
+get '/display/freeform' do
+  erb :'display/freeform_question', layout: false
+end
+
 get '/listen' do
   content_type 'application/json'
   code = $lobbies.start_new_lobby(UUID.get(session))
