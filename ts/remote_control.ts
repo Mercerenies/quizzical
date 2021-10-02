@@ -12,7 +12,7 @@ import { LobbyMessage } from './lobby/listener.js';
 import { RCID } from './uuid.js';
 import { LFSR } from './lfsr.js';
 import { render } from './renderer.js';
-import { QUESTION_RESPONSE_MESSAGE_TYPE, FreeformResponse } from './question.js';
+import { QUESTION_RESPONSE_MESSAGE_TYPE, QuestionResponse } from './question.js';
 import * as Util from './util.js';
 
 const hasOwnProperty = Object.prototype.hasOwnProperty;
@@ -108,7 +108,7 @@ export class RemoteControlFreeformDisplay extends RemoteControlDisplay {
 
   private sendAnswer(lobby: GuestLobby): void {
     const answer = $("#question-answer").val() as string;
-    const response: FreeformResponse = {
+    const response: QuestionResponse = {
       rcId: this.payload.rcId,
       responseType: "freeform",
       body: answer,
