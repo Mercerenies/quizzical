@@ -36,7 +36,7 @@ export class HTTPGetDisplayable implements Displayable {
   }
 
   async display(target: JQuery<HTMLElement>): Promise<void> {
-    const replacement = await $.get(this.httpTarget);
+    const replacement = $(await $.get(this.httpTarget));
     await this.callback(replacement);
     target.replaceWith(replacement);
   }
