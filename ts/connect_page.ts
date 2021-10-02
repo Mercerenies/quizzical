@@ -22,7 +22,7 @@ class ConnectStatusUpdater implements MessageListener {
   }
 
   onMessage(message: LobbyMessage): void {
-    const payload: MetaMessage = message.message;
+    const payload = message.message as MetaMessage;
     if (payload.result == 'error') {
       alert(`Error connecting: ${payload.error}`);
     }

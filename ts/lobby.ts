@@ -354,11 +354,16 @@ export async function joinLobby(code: string, playerName: string): Promise<Guest
 }
 
 async function tryPing(code: string): Promise<PlayerUUID | undefined> {
-  let pingResult: any;
+  let pingResult: PingResult;
   try {
     pingResult = await $.get(`/ping?code=${code}`);
   } catch {
     return undefined;
   }
   return pingResult.target;
+}
+
+interface PingResult {
+  result: 'ok';
+  target: PlayerUUID;
 }
