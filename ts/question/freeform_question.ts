@@ -1,6 +1,7 @@
 
 import { RemoteControlMessage, RCPageGenerator } from '../remote_control.js';
 import { Question } from '../question.js';
+import { Answer } from './answer.js';
 import { Displayable, HTTPGetDisplayable } from '../displayable.js';
 import { render } from '../renderer.js';
 
@@ -8,8 +9,8 @@ export class FreeformQuestion extends Question {
   readonly questionText: string;
   readonly answerType: "number" | "text"; // TODO Make this a named type
 
-  constructor(questionText: string, answerType: "number" | "text") {
-    super();
+  constructor(questionText: string, answerType: "number" | "text", answer: Answer) {
+    super(answer);
     this.questionText = questionText;
     this.answerType = answerType;
   }

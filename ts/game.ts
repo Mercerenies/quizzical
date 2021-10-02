@@ -5,6 +5,7 @@ import { ActiveScreen } from './active_screen.js';
 import { ResponseCollector } from './question/response_collector.js';
 import { Question, NullQuestion } from './question.js';
 import { FreeformQuestion } from './question/freeform_question.js';
+import { ExactAnswer } from './question/answer.js';
 
 /**
  * The primary manager for the game, from the perspective of the host
@@ -64,7 +65,7 @@ export class Game {
     updateHeader(this.lobby, $("main"));
 
     // DEBUG CODE
-    this.question = new FreeformQuestion("Test question", "number");
+    this.question = new FreeformQuestion("Test question", "number", new ExactAnswer("1"));
 
   }
 
