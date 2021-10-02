@@ -1,9 +1,9 @@
 
-import { LobbyListener, AbstractLobbyListener } from './lobby/listener.js';
 import { HostLobby } from './lobby.js';
 import { RemoteControlMessage, RCPageGenerator, REMOTE_CONTROL_MESSAGE_TYPE } from './remote_control.js';
 import { PlayerUUID, RCID } from './uuid.js';
 import { HasActiveRCID } from './question/response_collector.js';
+import { SignalHandler } from './signal.js';
 
 /**
  * An instance of ActiveScreen keeps track of a RemoteControlMessage
@@ -11,10 +11,10 @@ import { HasActiveRCID } from './question/response_collector.js';
  * guest reconnects, the active message will be sent to them.
  */
 export class ActiveScreen implements HasActiveRCID {
-  private listener: LobbyListener;
+  private listener: InitialSendListener;
   private _screen: RemoteControlMessage;
   private lobby: HostLobby;
-  private enabled: boolean;
+  private enabled: boolean = false;
 
   /**
    * Constructs an ActiveScreen which listens on the given lobby. An
@@ -25,7 +25,6 @@ export class ActiveScreen implements HasActiveRCID {
   constructor(lobby: HostLobby) {
     this.lobby = lobby;
     this.listener = new InitialSendListener(this);
-    this.enabled = false;
 
     this.enable();
 
@@ -51,7 +50,8 @@ export class ActiveScreen implements HasActiveRCID {
    */
   enable(): void {
     if (!this.enabled) {
-      this.lobby.addListener(this.listener);
+      this.lobby.connected.connect(this.listener);
+      this.lobby.reconnected.connect(this.listener);
       this.enabled = true;
     }
   }
@@ -61,7 +61,8 @@ export class ActiveScreen implements HasActiveRCID {
    */
   disable(): void {
     if (this.enabled) {
-      this.lobby.removeListener(this.listener);
+      this.lobby.reconnected.disconnect(this.listener);
+      this.lobby.reconnected.disconnect(this.listener);
       this.enabled = false;
     }
   }
@@ -102,20 +103,16 @@ export class ActiveScreen implements HasActiveRCID {
 
 }
 
-class InitialSendListener extends AbstractLobbyListener {
+class InitialSendListener implements SignalHandler<PlayerUUID> {
   private updater: { sendUpdateTo(player: PlayerUUID): void };
 
   constructor(updater: { sendUpdateTo(player: PlayerUUID): void }) {
-    super();
     this.updater = updater;
   }
 
-  onConnect(player: PlayerUUID): void {
+  handle(player: PlayerUUID): void {
     this.updater.sendUpdateTo(player);
   }
 
-  onReconnect(player: PlayerUUID): void {
-    this.updater.sendUpdateTo(player);
-  }
 
 }

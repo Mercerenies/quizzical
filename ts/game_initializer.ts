@@ -20,7 +20,9 @@ export class GameInitializer {
     this.updater = new PlayerListUpdater(this.lobby, params.playerListDOM);
     this.activeScreen = new ActiveScreen(this.lobby);
 
-    this.lobby.addListener(this.updater);
+    this.lobby.connected.connect(this.updater);
+    this.lobby.reconnected.connect(this.updater);
+    this.lobby.disconnected.connect(this.updater);
     this.updater.update();
 
   }
@@ -46,7 +48,9 @@ export class GameInitializer {
       return;
     }
 
-    this.lobby.removeListener(this.updater);
+    this.lobby.connected.disconnect(this.updater);
+    this.lobby.reconnected.disconnect(this.updater);
+    this.lobby.disconnected.disconnect(this.updater);
 
     const game = new Game({
       lobby: this.lobby,

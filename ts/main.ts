@@ -6,7 +6,7 @@
  */
 
 import { hostLobby } from './lobby.js';
-import { DebugLobbyListener } from './lobby/debug_listener.js';
+import { setupDebugListener } from './lobby/debug_listener.js';
 import { DEFAULT_MAX_PLAYERS } from './game_initializer.js';
 import { GameInitializer } from './game_initializer.js';
 
@@ -21,7 +21,7 @@ export function setupNewGame(): void {
       lobby: lobby,
       playerListDOM: $("#player-list"),
     });
-    gameInitializer.lobby.addListener(new DebugLobbyListener());
+    setupDebugListener(gameInitializer.lobby);
     $("#code").text(lobby.code);
     $("#start-game").click(() => gameInitializer.startGame());
   });

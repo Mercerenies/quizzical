@@ -5,26 +5,26 @@
  * @module message_dispatcher
  */
 
-import { AbstractLobbyListener, LobbyMessage } from './lobby/listener.js';
+import { LobbyMessage } from './lobby/listener.js';
+import { SignalHandler } from './signal.js';
 
 /**
- * MessageDispatcher is a {@link LobbyListener} which handles messages
- * from peers. Specifically, MessageDispatcher allows {@link
- * MessageListener} listeners to handle messages of a particular
- * messageType efficiently. Every {@link Lobby} automatically provides
- * a message dispatcher that can be used to efficiently handle
- * messages. This approach should be preferred to writing a {@link
- * LobbyListener} for every message type, for efficiency reasons.
+ * MessageDispatcher is a signal handler which handles messages from
+ * peers. Specifically, MessageDispatcher allows listeners to handle
+ * messages of a particular messageType efficiently. Every {@link
+ * Lobby} automatically provides a message dispatcher that can be used
+ * to efficiently handle messages. This approach should be preferred
+ * to writing a direct signal handler for every message type in Lobby,
+ * for efficiency reasons.
  */
-export class MessageDispatcher extends AbstractLobbyListener {
+export class MessageDispatcher implements SignalHandler<LobbyMessage> {
   private listeners: Map<string, MessageListener[]>;
 
   constructor() {
-    super();
     this.listeners = new Map();
   }
 
-  onMessage(message: LobbyMessage): void {
+  handle(message: LobbyMessage): void {
     (this.listeners.get(message.messageType) ?? []).forEach(function(listener) {
       listener.onMessage(message);
     });

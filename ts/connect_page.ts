@@ -5,7 +5,7 @@
  */
 
 import { MessageListener } from './message_dispatcher.js';
-import { DebugLobbyListener } from './lobby/debug_listener.js';
+import { setupDebugListener } from './lobby/debug_listener.js';
 import { LobbyMessage } from './lobby/listener.js';
 import { META_MESSAGE_TYPE, GuestLobby, joinLobby, MetaMessage } from './lobby.js';
 import { RemoteControlListener } from './remote_control.js';
@@ -79,7 +79,7 @@ async function pingWithCode(): Promise<void> {
 }
 
 function initListeners(lobby: GuestLobby): void {
-  lobby.addListener(new DebugLobbyListener());
+  setupDebugListener(lobby);
   lobby.dispatcher.addListener(new ConnectStatusUpdater($("#connection-status"), lobby)); // TODO Remove this
   lobby.dispatcher.addListener(new RemoteControlListener(lobby));
 }

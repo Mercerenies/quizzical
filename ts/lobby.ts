@@ -2,9 +2,9 @@
 import { SSE, DirectMessage, IncomingMessage } from './sse.js';
 import { PlayerUUID, PeerUUID } from './uuid.js';
 import { MessageDispatcher } from './message_dispatcher.js';
-import { LobbyListener, LobbyMessage } from './lobby/listener.js';
+import { LobbyMessage } from './lobby/listener.js';
 import { ConnectedPlayer } from './lobby/connected_player.js';
-import { SignalHandler } from './signal.js';
+import { Signal, SignalHandler } from './signal.js';
 
 export const RTC_CONFIG = {'iceServers': [{'urls': 'stun:stun.l.google.com:19302'}]};
 
@@ -27,16 +27,20 @@ export abstract class Lobby {
   readonly code: string;
   readonly hostId: PlayerUUID;
   abstract readonly selfId: PlayerUUID;
-  private listeners: LobbyListener[];
+
+  readonly messaged: Signal<LobbyMessage> = new Signal();
+  readonly connected: Signal<PlayerUUID> = new Signal();
+  readonly disconnected: Signal<PlayerUUID> = new Signal();
+  readonly reconnected: Signal<PlayerUUID> = new Signal();
+
   readonly dispatcher: MessageDispatcher;
 
   constructor(code: string, host: PlayerUUID) {
     this.code = code;
     this.hostId = host;
-    this.listeners = [];
     this.dispatcher = new MessageDispatcher();
     this.peer = new Peer(undefined, { debug: PEER_DEBUG_LEVEL });
-    this.addListener(this.dispatcher);
+    this.messaged.connect(this.dispatcher);
   }
 
   get peerId(): PeerUUID {
@@ -53,24 +57,6 @@ export abstract class Lobby {
 
   abstract sendMessageTo(target: PlayerUUID, message: LobbyMessage): void;
   abstract sendMessageToAll(message: LobbyMessage): void;
-
-  addListener(listener: LobbyListener): void {
-    this.listeners.push(listener);
-  }
-
-  removeListener(listener: LobbyListener): boolean {
-    const index = this.listeners.findIndex(function(x) { return x == listener; });
-    if (index >= 0) {
-      this.listeners.splice(index, 1);
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  protected dispatchOnListeners(func: (listener: LobbyListener) => void): void {
-    this.listeners.forEach(func);
-  }
 
 }
 
@@ -175,9 +161,9 @@ export class HostLobby extends Lobby {
     // Give the other side a second to set up comms
     window.setTimeout(() => {
       if (isReconnect) {
-        this.dispatchOnListeners((listener) => listener.onReconnect(uuid));
+        this.reconnected.dispatch(uuid);
       } else {
-        this.dispatchOnListeners((listener) => listener.onConnect(uuid));
+        this.connected.dispatch(uuid);
       }
 
       conn.send(this.newMessage(META_MESSAGE_TYPE, new MetaMessage('success', LobbyErrorCode.OK)));
@@ -206,7 +192,7 @@ export class HostLobby extends Lobby {
       // Remove them from the system
       this.connections.delete(uuid);
     }
-    this.dispatchOnListeners((listener) => listener.onDisconnect(uuid));
+    this.disconnected.dispatch(uuid);
   }
 
   private async handleMessage(message: IncomingMessage): Promise<void> {
@@ -226,7 +212,7 @@ export class HostLobby extends Lobby {
       messageType: message.messageType,
       message: message.message,
     };
-    this.dispatchOnListeners((listener) => listener.onMessage(newMessage));
+    this.messaged.dispatch(newMessage);
   }
 
   sendMessageTo(target: PlayerUUID, message: LobbyMessage): void {
@@ -285,7 +271,7 @@ export class GuestLobby extends Lobby {
         console.log("Got connection");
         this.conn = conn;
         conn.on('data', (data) => this.onMessage(data));
-        this.dispatchOnListeners((listener) => listener.onConnect(this.hostId));
+        this.connected.dispatch(this.hostId);
       });
       break;
     }
@@ -298,7 +284,7 @@ export class GuestLobby extends Lobby {
       messageType: message.messageType,
       message: message.message,
     };
-    this.dispatchOnListeners((listener) => listener.onMessage(newMessage));
+    this.messaged.dispatch(newMessage);
   }
 
   sendMessageTo(target: PlayerUUID, message: LobbyMessage): void {

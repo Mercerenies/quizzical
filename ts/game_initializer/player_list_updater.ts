@@ -1,7 +1,7 @@
 
 import { HostLobby } from '../lobby.js';
-import { AbstractLobbyListener } from '../lobby/listener.js';
 import * as Util from '../util.js';
+import { SignalHandler } from '../signal.js';
 
 /**
  * This class manages a list in the DOM of players currently in the
@@ -9,25 +9,16 @@ import * as Util from '../util.js';
  * will always update the player list whenever a player connects or
  * disconnects.
  */
-export class PlayerListUpdater extends AbstractLobbyListener {
+export class PlayerListUpdater implements SignalHandler<unknown> {
   private lobby: HostLobby;
   private playerList: JQuery<HTMLElement>
 
   constructor(lobby: HostLobby, playerList: JQuery<HTMLElement>) {
-    super();
     this.lobby = lobby;
     this.playerList = playerList;
   }
 
-  onConnect(): void {
-    this.update();
-  }
-
-  onDisconnect(): void {
-    this.update();
-  }
-
-  onReconnect(): void {
+  handle(): void {
     this.update();
   }
 
