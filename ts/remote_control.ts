@@ -15,6 +15,8 @@ import { render } from './renderer.js';
 import { QUESTION_RESPONSE_MESSAGE_TYPE, FreeformResponse } from './question.js';
 import * as Util from './util.js';
 
+const hasOwnProperty = Object.prototype.hasOwnProperty;
+
 export const REMOTE_CONTROL_MESSAGE_TYPE = "RemoteControl.REMOTE_CONTROL_MESSAGE_TYPE";
 
 export const RC_TRANSLATION = {
@@ -221,11 +223,19 @@ export class RCPageGenerator {
 }
 
 // Some basic validation
-function asRCMessage(message: any): RemoteControlMessage | undefined {
-  if ((RC_TRANSLATION as any)[message.rcType] === undefined) {
-    console.warn(`Got invalid rcType ${message.rcType}`);
+function asRCMessage(message: unknown): RemoteControlMessage | undefined {
+  if ((typeof message !== 'object') || (message === null)) {
+    console.warn(`Got invalid RC message ${message}`);
     return undefined;
   }
 
-  return message;
+  // TODO Better validation
+  const rcMessage = message as RemoteControlMessage;
+
+  if (!hasOwnProperty.call(RC_TRANSLATION, rcMessage.rcType)) {
+    console.warn(`Got invalid rcType ${rcMessage.rcType}`);
+    return undefined;
+  }
+
+  return rcMessage;
 }
