@@ -94,6 +94,12 @@ export class HostLobby extends Lobby {
     return players;
   }
 
+  // Note: Includes players who are currently disconnected but are
+  // in-game.
+  get allPlayerIDs(): PlayerUUID[] {
+    return [...this.connections.keys()];
+  }
+
   get playerCount(): number {
     return [...this.players].length;
   }

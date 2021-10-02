@@ -5,6 +5,8 @@ import { ActiveScreen } from './active_screen.js';
 import { ResponseCollector } from './question/response_collector.js';
 import { Question, NullQuestion } from './question.js';
 import { QuestionGenerator } from './question/generator.js';
+import { PlayerDataMap } from './game/player_data.js';
+import { SignalHandler } from './signal.js';
 
 /**
  * The primary manager for the game, from the perspective of the host
@@ -15,6 +17,7 @@ import { QuestionGenerator } from './question/generator.js';
  */
 export class Game {
   readonly lobby: HostLobby;
+  readonly players: PlayerDataMap;
   private activeScreen: ActiveScreen;
   private responseCollector: ResponseCollector;
   private activeQuestion: Question;
@@ -29,6 +32,7 @@ export class Game {
     this.lobby = params.lobby;
     this.activeScreen = params.activeScreen;
     this.responseCollector = new ResponseCollector(this.activeScreen);
+    this.players = new PlayerDataMap(this.lobby.players.map((player) => [player.uuid, player.playerName]));
 
     this.lobby.dispatcher.connect(this.responseCollector);
 
@@ -36,6 +40,12 @@ export class Game {
 
     this.activeQuestion = new NullQuestion();
     this.question = this.activeQuestion; // Update question data
+
+    this.players.updated.connect(SignalHandler(() => this.updateHeader()));
+  }
+
+  private updateHeader() {
+    updateHeader(this, $("main"));
   }
 
   get question(): Question {
@@ -64,7 +74,7 @@ export class Game {
 
     const newPage = $(await $.get('/game/play'));
     $("main").replaceWith(newPage);
-    updateHeader(this.lobby, $("main"));
+    this.updateHeader();
 
     // DEBUG CODE
     $("#end-question").click(() => this.endQuestion());
@@ -75,8 +85,18 @@ export class Game {
   }
 
   private endQuestion(): void {
-    console.log(this.responseCollector.getResponses());
+    for (const player of this.players) {
+      const response = this.responseCollector.getResponse(player.uuid);
+      if (response !== undefined) {
+        if (this.question.correctAnswer.isCorrect(response.body)) {
+          player.score += 1;
+        }
+      }
+    }
+
+    // Generate new question
     this.question = this.generator.generate();
+
   }
 
 }
