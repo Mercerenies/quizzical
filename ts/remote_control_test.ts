@@ -4,6 +4,7 @@
 // DEBUG CODE
 
 import { RemoteControlDisplay, RCPageGenerator, RemoteControlMessage, RC_TRANSLATION } from './remote_control.js';
+import { GuestLobby } from './lobby.js';
 
 export async function setupRCPage(): Promise<void> {
   await setupJoined();
@@ -29,6 +30,6 @@ async function setupFreeform(): Promise<void> {
 async function establishPage(payload: RemoteControlMessage, replacement: JQuery<HTMLElement>): Promise<void> {
   const page = await $.get(RC_TRANSLATION[payload.rcType]);
   const display = RemoteControlDisplay.createFrom(payload, $(page));
-  display.initialize({ playerName: "Test Player Name", code: "XXXX" } as any); // Just for testing :)
+  display.initialize({ playerName: "Test Player Name", code: "XXXX" } as GuestLobby); // Just for testing :)
   replacement.replaceWith(display.page);
 }
