@@ -2,14 +2,15 @@
 import { LobbyListener, AbstractLobbyListener } from './lobby/listener.js';
 import { HostLobby } from './lobby.js';
 import { RemoteControlMessage, RCPageGenerator, REMOTE_CONTROL_MESSAGE_TYPE } from './remote_control.js';
-import { PlayerUUID } from './uuid.js';
+import { PlayerUUID, RCID } from './uuid.js';
+import { HasActiveRCID } from './question/response_collector.js';
 
 /**
  * An instance of ActiveScreen keeps track of a RemoteControlMessage
  * object. Whenever a new guest connects to the lobby *or* an existing
  * guest reconnects, the active message will be sent to them.
  */
-export class ActiveScreen {
+export class ActiveScreen implements HasActiveRCID {
   private listener: LobbyListener;
   private _screen: RemoteControlMessage;
   private lobby: HostLobby;
@@ -31,6 +32,10 @@ export class ActiveScreen {
     this._screen = RCPageGenerator.get().joinedPage();
     this.sendUpdateToAll();
 
+  }
+
+  getActiveRCID(): RCID {
+    return this.screen.rcId;
   }
 
   /**

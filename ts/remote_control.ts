@@ -129,6 +129,7 @@ export class RemoteControlListener implements MessageListener {
     const payload = asRCMessage(message.message);
 
     if (payload === undefined) {
+      console.error(`Got invalid payload ${payload} in RemoteControlListener.onMessage`);
       return;
     }
 

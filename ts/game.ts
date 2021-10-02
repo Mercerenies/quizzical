@@ -2,6 +2,8 @@
 import { HostLobby } from './lobby.js';
 import { updateHeader } from './game_play_page.js';
 import { ActiveScreen } from './active_screen.js';
+import { RCPageGenerator } from './remote_control.js';
+import { ResponseCollector } from './question/response_collector.js';
 
 /**
  * The primary manager for the game, from the perspective of the host
@@ -13,6 +15,7 @@ import { ActiveScreen } from './active_screen.js';
 export class Game {
   readonly lobby: HostLobby;
   private activeScreen: ActiveScreen;
+  private responseCollector: ResponseCollector;
 
   /**
    * A Game is constructed from a lobby. The lobby should not have had
@@ -22,6 +25,10 @@ export class Game {
   constructor(params: GameParams) {
     this.lobby = params.lobby;
     this.activeScreen = params.activeScreen;
+    this.responseCollector = new ResponseCollector(this.activeScreen);
+
+    this.lobby.dispatcher.addListener(this.responseCollector);
+
   }
 
   /**
@@ -34,6 +41,9 @@ export class Game {
     const newPage = $(await $.get('/game/play'));
     $("main").replaceWith(newPage);
     updateHeader(this.lobby, $("main"));
+
+    // DEBUG CODE
+    this.activeScreen.screen = RCPageGenerator.get().freeformPage("Test question", "number");
 
   }
 
