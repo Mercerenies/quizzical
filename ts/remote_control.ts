@@ -150,7 +150,7 @@ export class RemoteControlListener implements MessageListener {
 export interface RemoteControlMessage {
   rcType: keyof typeof RC_TRANSLATION;
   rcId: RCID;
-  rcParams: Record<string, unknown>;
+  rcParams: unknown;
 }
 
 export interface RemoteControlJoinedMessage extends RemoteControlMessage {

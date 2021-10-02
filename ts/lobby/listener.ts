@@ -87,6 +87,6 @@ export interface LobbyMessage {
    * The message payload itself. This value can consist of any
    * JSON-serializable data.
    */
-  readonly message: any;
+  readonly message: unknown;
 
 }

@@ -111,7 +111,7 @@ export interface OutgoingMessage {
    * Returns a JSON representation of the message, for serialization
    * purposes.
    */
-  toJSON(): Record<string, unknown>;
+  toJSON(): unknown;
 
   /**
    * The URL to send the message to. The HTTP POST method will always
@@ -127,20 +127,20 @@ export interface OutgoingMessage {
 export class DirectMessage implements OutgoingMessage {
   readonly target: PlayerUUID;
   readonly messageType: string;
-  readonly message: Record<string, unknown>;
+  readonly message: unknown;
 
   /**
    * @param target the ID of the client to send the message to
    * @param messageType the type of message
    * @param message the payload, a JSON-serializable object
    */
-  constructor(target: PlayerUUID, messageType: string, message: Record<string, unknown>) {
+  constructor(target: PlayerUUID, messageType: string, message: unknown) {
     this.target = target;
     this.messageType = messageType;
     this.message = message;
   }
 
-  toJSON(): Record<string, unknown> {
+  toJSON(): unknown {
     return {
       target: this.target,
       messageType: this.messageType,
@@ -159,18 +159,18 @@ export class DirectMessage implements OutgoingMessage {
  */
 export class BroadcastMessage implements OutgoingMessage { // TODO Disable this functionality on the prod server
   readonly messageType: string;
-  readonly message: Record<string, unknown>;
+  readonly message: unknown;
 
   /**
    * @param messageType the type of message
    * @param message the payload, a JSON-serializable object
    */
-  constructor(messageType: string, message: Record<string, unknown>) {
+  constructor(messageType: string, message: unknown) {
     this.messageType = messageType;
     this.message = message;
   }
 
-  toJSON(): Record<string, unknown> {
+  toJSON(): unknown {
     return {
       messageType: this.messageType,
       message: this.message,
@@ -189,15 +189,15 @@ export class BroadcastMessage implements OutgoingMessage { // TODO Disable this 
 export interface IncomingMessageBase {
   readonly source: PlayerUUID;
   readonly messageType: string;
-  readonly message: Record<string, unknown>;
+  readonly message: unknown;
 }
 
 export class IncomingMessage implements IncomingMessageBase {
   readonly source: PlayerUUID;
   readonly messageType: string;
-  readonly message: Record<string, unknown>;
+  readonly message: unknown;
 
-  constructor(source: PlayerUUID, messageType: string, message: Record<string, unknown>) {
+  constructor(source: PlayerUUID, messageType: string, message: unknown) {
     this.source = source;
     this.messageType = messageType;
     this.message = message;

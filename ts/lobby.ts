@@ -42,7 +42,7 @@ export abstract class Lobby {
     return this.peer.id as PeerUUID;
   }
 
-  newMessage(messageType: string, payload: any): LobbyMessage {
+  newMessage(messageType: string, payload: unknown): LobbyMessage {
     return {
       source: this.selfId,
       messageType: messageType,
@@ -209,7 +209,8 @@ export class HostLobby extends Lobby {
   }
 
   private async handleMessage(message: IncomingMessage): Promise<void> {
-    switch (message.message.type) {
+    const payload = message.message as LobbySSEPayload;
+    switch (payload.type) {
     case "get-peer-id":
       const response = new DirectMessage(message.source, LOBBY_MESSAGE_TYPE, { type: "response-peer-id", id: this.peerId });
       SSE.get().sendMessage(response);
@@ -270,10 +271,11 @@ export class GuestLobby extends Lobby {
   }
 
   private async handleMessage(message: IncomingMessage): Promise<void> {
-    switch (message.message.type) {
+    const payload = message.message as LobbySSEPayload;
+    switch (payload.type) {
     case "response-peer-id":
       const selfId = this.selfId;
-      const peerId = message.message.id as string;
+      const peerId = payload.id as string;
       console.log("Got peer ID " + peerId);
       const metadata: InitMetadata = { uuid: selfId, playerName: this.playerName };
       const conn = this.peer.connect(peerId, { metadata: metadata });
@@ -366,4 +368,9 @@ async function tryPing(code: string): Promise<PlayerUUID | undefined> {
 interface PingResult {
   result: 'ok';
   target: PlayerUUID;
+}
+
+interface LobbySSEPayload {
+  type: "get-peer-id" | "response-peer-id";
+  id?: PeerUUID;
 }
