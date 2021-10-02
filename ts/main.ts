@@ -14,10 +14,9 @@ import { REMOTE_CONTROL_MESSAGE_TYPE, RCPageGenerator, RemoteControlMessage } fr
 import { PlayerUUID } from './uuid.js';
 import * as Util from './util.js';
 import { updateHeader } from './game_play_page.js';
+import { ActiveScreen } from './active_screen.js';
 
 const DEFAULT_MAX_PLAYERS = 4;
-
-let _rc: RemoteControlMessage = RCPageGenerator.get().joinedPage();
 
 class PlayerListUpdater extends AbstractLobbyListener {
   private lobby: HostLobby;
@@ -58,34 +57,6 @@ class PlayerListUpdater extends AbstractLobbyListener {
 
 }
 
-class RCInitialSender extends AbstractLobbyListener {
-  private lobby: HostLobby;
-
-  constructor(lobby: HostLobby) {
-    super();
-    this.lobby = lobby;
-  }
-
-  onConnect(player: PlayerUUID): void {
-    this.sendUpdateTo(player);
-  }
-
-  onReconnect(player: PlayerUUID): void {
-    this.sendUpdateTo(player);
-  }
-
-  sendUpdateTo(player: PlayerUUID): void {
-    const message = this.lobby.newMessage(REMOTE_CONTROL_MESSAGE_TYPE, _rc);
-    this.lobby.sendMessageTo(player, message);
-  }
-
-}
-
-function setRC(lobby: HostLobby, payload: RemoteControlMessage): void {
-  _rc = payload;
-  lobby.sendMessageToAll(lobby.newMessage(REMOTE_CONTROL_MESSAGE_TYPE, payload));
-}
-
 async function startGame(lobby: HostLobby): Promise<void> {
   if (lobby.playerCount > 0) {
     lobby.startGame();
@@ -106,11 +77,10 @@ export function setupNewGame(): void {
 
   hostLobby(DEFAULT_MAX_PLAYERS).then((lobby) => {
     const updater = new PlayerListUpdater(lobby, $("#player-list"));
-    const initSender = new RCInitialSender(lobby);
+    const activeScreen = new ActiveScreen(lobby);
 
     lobby.addListener(new DebugLobbyListener());
     lobby.addListener(updater);
-    lobby.addListener(initSender);
 
     updater.update();
     $("#code").text(lobby.code);
