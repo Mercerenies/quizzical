@@ -31,8 +31,6 @@ export class Game {
   async begin(): Promise<void> {
     this.lobby.startGame();
 
-    this.lobby.startGame();
-
     const newPage = $(await $.get('/game/play'));
     $("main").replaceWith(newPage);
     updateHeader(this.lobby, $("main"));
