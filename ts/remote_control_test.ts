@@ -3,10 +3,11 @@
 //
 // DEBUG CODE
 
-import { RCPageGenerator, infoPage } from './remote_control/page_generator.js';
+import { RCPageGenerator } from './remote_control/page_generator.js';
 import { RemoteControlMessage, RC_TRANSLATION } from './remote_control.js';
 import { RemoteControlDisplay } from './remote_control/display.js';
 import { GuestLobby } from './lobby.js';
+import { infoPage } from './question/info_question.js';
 import { freeformPage } from './question/freeform_question.js';
 import { multichoicePage } from './question/multichoice_question.js';
 

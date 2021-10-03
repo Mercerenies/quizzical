@@ -1,7 +1,7 @@
 
 import { LFSR } from '../lfsr.js';
 import { RCID } from '../uuid.js';
-import { RemoteControlMessage, RemoteControlJoinedMessage, RemoteControlInfoMessage } from '../remote_control.js';
+import { RemoteControlMessage, RemoteControlJoinedMessage } from '../remote_control.js';
 
 let _pageGenerator: RCPageGenerator | null = null;
 
@@ -54,12 +54,4 @@ export class RCPageGenerator {
  */
 export interface RemoteControlMessageBuilder<T extends RemoteControlMessage> {
   (rcid: RCID): T;
-}
-
-export function infoPage(info: string): RemoteControlMessageBuilder<RemoteControlInfoMessage> {
-  return (rcid: RCID) => ({
-    rcType: "info",
-    rcId: rcid,
-    rcParams: { info },
-  });
 }
