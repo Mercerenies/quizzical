@@ -40,7 +40,8 @@ async function setupMultichoice(): Promise<void> {
 
 async function establishPage(payload: RemoteControlMessage, replacement: JQuery<HTMLElement>): Promise<void> {
   const page = await $.get(RC_TRANSLATION[payload.rcType]);
-  const display = RemoteControlDisplay.createFrom(payload, $(page));
-  display.initialize({ playerName: "Test Player Name", code: "XXXX" } as GuestLobby); // Just for testing :)
-  replacement.replaceWith(display.page);
+  const jPage = $(page);
+  const display = RemoteControlDisplay.createFrom(payload);
+  display.initialize({ playerName: "Test Player Name", code: "XXXX" } as GuestLobby, jPage); // Just for testing :)
+  replacement.replaceWith(jPage);
 }

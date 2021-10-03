@@ -21,7 +21,7 @@ export const REMOTE_CONTROL_MESSAGE_TYPE = "RemoteControl.REMOTE_CONTROL_MESSAGE
  * request targets. The valid rcType field values are defined to be
  * the keys of this object (i.e. keyof RC_TRANSLATION).
  */
-export const RC_TRANSLATION = {
+export const RC_TRANSLATION = { ////
   'joined': '/rc/joined',
   'info': '/rc/info',
   'freeform': '/rc/freeform',
@@ -51,9 +51,10 @@ export class RemoteControlListener implements SignalHandler<LobbyMessage> {
     const pageURL = RC_TRANSLATION[payload.rcType];
 
     $.get(pageURL).then((page) => {
-      const display = RemoteControlDisplay.createFrom(payload, $(page));
-      display.initialize(this.lobby);
-      $("main").replaceWith(display.page);
+      const display = RemoteControlDisplay.createFrom(payload);
+      const jPage = $(page);
+      display.initialize(this.lobby, jPage);
+      $("main").replaceWith(jPage);
     });
 
   }

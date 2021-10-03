@@ -12,7 +12,6 @@ import * as Util from '../util.js';
  */
 export class RemoteControlDisplay {
   readonly payload: RemoteControlMessage;
-  readonly page: JQuery<HTMLElement>;
 
   /**
    * Constructs a raw RemoteControlDisplay.
@@ -21,9 +20,8 @@ export class RemoteControlDisplay {
    * which will intelligently construct an instance of a smarter
    * subclass.
    */
-  constructor(payload: RemoteControlMessage, page: JQuery<HTMLElement>) {
+  constructor(payload: RemoteControlMessage) {
     this.payload = payload;
-    this.page = page;
   }
 
   /**
@@ -31,10 +29,10 @@ export class RemoteControlDisplay {
    * frequently extend this method's functionality to provide
    * form-specific initialization.
    */
-  initialize(lobby: GuestLobby): void {
-    this.page.find("#player-name").text(lobby.playerName);
-    this.page.find("#game-code").text(lobby.code);
-    this.page.data("rcid", this.payload.rcId);
+  initialize(lobby: GuestLobby, page: JQuery<HTMLElement>): void {
+    page.find("#player-name").text(lobby.playerName);
+    page.find("#game-code").text(lobby.code);
+    page.data("rcid", this.payload.rcId);
   }
 
   /**
@@ -44,16 +42,16 @@ export class RemoteControlDisplay {
    * @param payload the message
    * @param page the <main> page to augment
    */
-  static createFrom(payload: RemoteControlMessage, page: JQuery<HTMLElement>): RemoteControlDisplay {
+  static createFrom(payload: RemoteControlMessage): RemoteControlDisplay {
     switch (payload.rcType) {
     case 'joined':
-      return new RemoteControlJoinedDisplay(payload, page);
+      return new RemoteControlJoinedDisplay(payload);
     case 'info':
-      return new RemoteControlInfoDisplay(payload, page);
+      return new RemoteControlInfoDisplay(payload);
     case 'freeform':
-      return new RemoteControlFreeformDisplay(payload, page);
+      return new RemoteControlFreeformDisplay(payload);
     case 'multichoice':
-      return new RemoteControlMultichoiceDisplay(payload, page);
+      return new RemoteControlMultichoiceDisplay(payload);
     }
   }
 
@@ -72,12 +70,12 @@ export class RemoteControlJoinedDisplay extends RemoteControlDisplay {
 export class RemoteControlInfoDisplay extends RemoteControlDisplay {
   readonly rcType: keyof typeof RC_TRANSLATION = "info";
 
-  initialize(lobby: GuestLobby): void {
-    super.initialize(lobby);
+  initialize(lobby: GuestLobby, page: JQuery<HTMLElement>): void {
+    super.initialize(lobby, page);
     const payload = this.payload as RemoteControlInfoMessage;
     const info = payload.rcParams.info;
     render(info).then((mdInfo) => {
-      this.page.find("#informational-message").html(mdInfo);
+      page.find("#informational-message").html(mdInfo);
     });
   }
 
@@ -89,19 +87,19 @@ export class RemoteControlInfoDisplay extends RemoteControlDisplay {
 export class RemoteControlFreeformDisplay extends RemoteControlDisplay {
   readonly rcType: keyof typeof RC_TRANSLATION = "freeform";
 
-  initialize(lobby: GuestLobby): void {
-    super.initialize(lobby);
+  initialize(lobby: GuestLobby, page: JQuery<HTMLElement>): void {
+    super.initialize(lobby, page);
     this.validateAnswerType();
 
     const payload = this.payload as RemoteControlFreeformMessage;
     const questionText = payload.rcParams.questionText;
     render(questionText).then((mdQuestionText) => {
-      this.page.find("#question-text").html(mdQuestionText);
+      page.find("#question-text").html(mdQuestionText);
     });
-    this.page.find("#question-answer").attr("type", payload.rcParams.answerType);
-    Util.enterToButton(this.page.find("#question-answer"), this.page.find("#question-submit"));
+    page.find("#question-answer").attr("type", payload.rcParams.answerType);
+    Util.enterToButton(page.find("#question-answer"), page.find("#question-submit"));
 
-    this.page.find("#question-submit").click(() => this.sendAnswer(lobby));
+    page.find("#question-submit").click(() => this.sendAnswer(lobby));
 
   }
 
@@ -135,13 +133,13 @@ export class RemoteControlFreeformDisplay extends RemoteControlDisplay {
 export class RemoteControlMultichoiceDisplay extends RemoteControlDisplay {
   readonly rcType: keyof typeof RC_TRANSLATION = "multichoice";
 
-  initialize(lobby: GuestLobby): void { //// initialize should be async
-    super.initialize(lobby);
+  initialize(lobby: GuestLobby, page: JQuery<HTMLElement>): void { //// initialize should be async
+    super.initialize(lobby, page);
 
     const payload = this.payload as RemoteControlMultichoiceMessage;
     const questionText = payload.rcParams.questionText;
     render(questionText).then((mdQuestionText) => {
-      this.page.find("#question-text").html(mdQuestionText);
+      page.find("#question-text").html(mdQuestionText);
     });
 
     // Initialize the answer choices
@@ -155,29 +153,30 @@ export class RemoteControlMultichoiceDisplay extends RemoteControlDisplay {
         `);
       }
       const answerText = `<div class="list-group">${options.join('')}</div>`;
-      this.page.find("#question-answer").html(answerText);
+      page.find("#question-answer").html(answerText);
 
-      this.page.find(".multichoice-answer").click((event) => {
+      page.find(".multichoice-answer").click((event) => {
         console.log(event.currentTarget);
-        this.setAnswer($(event.currentTarget));
+        this.setAnswer($(event.currentTarget), page);
         return false;
       });
 
     })();
 
-    this.page.find("#question-submit").click(() => this.sendAnswer(lobby));
+    page.find("#question-submit").click(() => this.sendAnswer(lobby, page));
 
   }
 
-  private setAnswer(selection: JQuery<HTMLElement>) {
-    const options = this.page.find(".multichoice-answer");
+  // TODO Move these private guys to a new class that has page (and the same for the other RCDisplay instances)
+  private setAnswer(selection: JQuery<HTMLElement>, page: JQuery<HTMLElement>) {
+    const options = page.find(".multichoice-answer");
     options.removeClass("active");
     selection.addClass("active");
   }
 
-  private getAnswerIndex(): number | undefined {
+  private getAnswerIndex(page: JQuery<HTMLElement>): number | undefined {
     let index = 0;
-    for (const opt of this.page.find(".multichoice-answer")) {
+    for (const opt of page.find(".multichoice-answer")) {
       if ($(opt).hasClass("active")) {
         return index;
       }
@@ -186,9 +185,9 @@ export class RemoteControlMultichoiceDisplay extends RemoteControlDisplay {
     return undefined;
   }
 
-  private sendAnswer(lobby: GuestLobby): void {
+  private sendAnswer(lobby: GuestLobby, page: JQuery<HTMLElement>): void {
     // TODO Feedback on bad answer (also on Freeform as well)
-    const answerIndex = this.getAnswerIndex();
+    const answerIndex = this.getAnswerIndex(page);
     if (answerIndex !== undefined) {
 
       const response: QuestionResponse = {
