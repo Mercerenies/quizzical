@@ -1,5 +1,5 @@
 
-import { RemoteControlMessage, RemoteControlFreeformMessage } from '../remote_control.js';
+import { RemoteControlMessage } from '../remote_control.js';
 import { RemoteControlDisplay } from '../remote_control/display.js';
 import { RCPageGenerator, RemoteControlMessageBuilder } from '../remote_control/page_generator.js';
 import { Question, QuestionResponse, QUESTION_RESPONSE_MESSAGE_TYPE } from '../question.js';
@@ -96,4 +96,15 @@ export class RemoteControlFreeformDisplay extends RemoteControlDisplay {
     lobby.sendMessageTo(lobby.hostId, message);
   }
 
+}
+
+/**
+ * A message for a "freeform" display.
+ */
+export interface RemoteControlFreeformMessage extends RemoteControlMessage {
+  rcType: "freeform";
+  rcParams: {
+    questionText: string,
+    answerType: "number" | "text",
+  };
 }

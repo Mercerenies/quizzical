@@ -1,5 +1,5 @@
 
-import { RemoteControlMessage, RemoteControlMultichoiceMessage } from '../remote_control.js';
+import { RemoteControlMessage } from '../remote_control.js';
 import { RemoteControlDisplay } from '../remote_control/display.js';
 import { RCPageGenerator, RemoteControlMessageBuilder } from '../remote_control/page_generator.js';
 import { Question, QuestionResponse, QUESTION_RESPONSE_MESSAGE_TYPE } from '../question.js';
@@ -139,4 +139,15 @@ export class RemoteControlMultichoiceDisplay extends RemoteControlDisplay {
     }
   }
 
+}
+
+/**
+ * A message for a "multichoice" display.
+ */
+export interface RemoteControlMultichoiceMessage extends RemoteControlMessage {
+  rcType: "multichoice";
+  rcParams: {
+    questionText: string,
+    answerChoices: string[],
+  };
 }

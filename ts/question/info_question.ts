@@ -9,7 +9,7 @@
 
 import { RemoteControlMessageBuilder } from '../remote_control/page_generator.js';
 import { RemoteControlDisplay } from '../remote_control/display.js';
-import { RemoteControlInfoMessage } from '../remote_control.js';
+import { RemoteControlMessage } from '../remote_control.js';
 import { RCID } from '../uuid.js';
 import { GuestLobby } from '../lobby.js';
 import { render } from '../renderer.js';
@@ -40,4 +40,12 @@ export class RemoteControlInfoDisplay extends RemoteControlDisplay {
     });
   }
 
+}
+
+/**
+ * A message for an "info" display.
+ */
+export interface RemoteControlInfoMessage extends RemoteControlMessage {
+  rcType: "info";
+  rcParams: { info: string };
 }

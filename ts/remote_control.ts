@@ -64,36 +64,6 @@ export interface RemoteControlJoinedMessage extends RemoteControlMessage {
   rcType: "joined";
 }
 
-/**
- * A message for an "info" display.
- */
-export interface RemoteControlInfoMessage extends RemoteControlMessage {
-  rcType: "info";
-  rcParams: { info: string };
-}
-
-/**
- * A message for a "freeform" display.
- */
-export interface RemoteControlFreeformMessage extends RemoteControlMessage {
-  rcType: "freeform";
-  rcParams: {
-    questionText: string,
-    answerType: "number" | "text",
-  };
-}
-
-/**
- * A message for a "multichoice" display.
- */
-export interface RemoteControlMultichoiceMessage extends RemoteControlMessage {
-  rcType: "multichoice";
-  rcParams: {
-    questionText: string,
-    answerChoices: string[],
-  };
-}
-
 // Some basic validation
 function asRCMessage(message: unknown): RemoteControlMessage | undefined {
   if ((typeof message !== 'object') || (message === null)) {
