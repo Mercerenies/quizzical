@@ -176,10 +176,10 @@ export class RemoteControlMultichoiceDisplay extends RemoteControlDisplay {
       for (const answer of payload.rcParams.answerChoices) {
         const mdAnswer = await render(answer);
         options.push(`
-          <a href="#" class="list-group-item list-group-item-action multichoice-answer">${mdAnswer}</li>
+          <a href="#" class="list-group-item list-group-item-action multichoice-answer">${mdAnswer}</a>
         `);
       }
-      const answerText = `<div class="list-group">${options.join('')}</ul>`;
+      const answerText = `<div class="list-group">${options.join('')}</div>`;
       this.page.find("#question-answer").html(answerText);
 
       this.page.find(".multichoice-answer").click((event) => {
