@@ -10,7 +10,7 @@ import { GuestLobby } from './lobby.js';
 import { SignalHandler } from './signal.js';
 import { LobbyMessage } from './lobby/listener.js';
 import { RCID } from './uuid.js';
-import { RemoteControlDisplay } from './remote_control/display.js';
+import { RemoteControlDisplayRegistrar } from './remote_control/display.js';
 
 export const REMOTE_CONTROL_MESSAGE_TYPE = "RemoteControl.REMOTE_CONTROL_MESSAGE_TYPE";
 
@@ -34,8 +34,7 @@ export class RemoteControlListener implements SignalHandler<LobbyMessage> {
       return;
     }
 
-    //// Registrar
-    const display = RemoteControlDisplay.createFrom(payload);
+    const display = RemoteControlDisplayRegistrar.get().createDisplay(payload);
     const pageURL = display.httpGetTarget;
 
     $.get(pageURL).then((page) => {

@@ -14,12 +14,15 @@ import { QuestionGenerator } from './question/generator.js';
 import { FreeformQuestion } from './question/freeform_question.js';
 import { MultichoiceQuestion } from './question/multichoice_question.js';
 import { ExactAnswer } from './question/answer.js';
+import { initializeRCDisplays } from './remote_control/initializer.js';
 
 /**
  * Set up the game page. Should be called once after the page is
  * loaded.
  */
 export function setupNewGame(): void {
+
+  initializeRCDisplays();
 
   hostLobby(DEFAULT_MAX_PLAYERS).then((lobby) => {
     const gameInitializer = new GameInitializer({

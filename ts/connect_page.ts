@@ -10,6 +10,7 @@ import { META_MESSAGE_TYPE, GuestLobby, joinLobby, MetaMessage } from './lobby.j
 import { RemoteControlListener } from './remote_control.js';
 import * as Util from './util.js';
 import { SignalHandler } from './signal.js';
+import { initializeRCDisplays } from './remote_control/initializer.js';
 
 class ConnectStatusUpdater implements SignalHandler<LobbyMessage> {
   readonly messageType: string = META_MESSAGE_TYPE;
@@ -89,6 +90,7 @@ function initListeners(lobby: GuestLobby): void {
  * loaded.
  */
 export function setupConnectPage(): void {
+  initializeRCDisplays();
   $("#submit").click(pingWithCode);
   $("#connection-status").html("Not connected");
   Util.enterToButton($("#code, #player-name"), $("#submit"));

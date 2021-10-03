@@ -5,13 +5,15 @@
 
 import { RCPageGenerator } from './remote_control/page_generator.js';
 import { RemoteControlMessage } from './remote_control.js';
-import { RemoteControlDisplay } from './remote_control/display.js';
+import { RemoteControlDisplayRegistrar } from './remote_control/display.js';
+import { initializeRCDisplays } from './remote_control/initializer.js';
 import { GuestLobby } from './lobby.js';
 import { infoPage } from './question/info_question.js';
 import { freeformPage } from './question/freeform_question.js';
 import { multichoicePage } from './question/multichoice_question.js';
 
 export async function setupRCPage(): Promise<void> {
+  initializeRCDisplays();
   await setupJoined();
   await setupInfo();
   await setupFreeform();
@@ -39,7 +41,7 @@ async function setupMultichoice(): Promise<void> {
 }
 
 async function establishPage(payload: RemoteControlMessage, replacement: JQuery<HTMLElement>): Promise<void> {
-  const display = RemoteControlDisplay.createFrom(payload);
+  const display = RemoteControlDisplayRegistrar.get().createDisplay(payload);
   const page = await $.get(display.httpGetTarget);
   const jPage = $(page);
   display.initialize({ playerName: "Test Player Name", code: "XXXX" } as GuestLobby, jPage); // Just for testing :)

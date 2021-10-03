@@ -37,27 +37,6 @@ export abstract class RemoteControlDisplay {
     page.data("rcid", this.payload.rcId);
   }
 
-  /**
-   * Constructs a RemoteControlDisplay subclass most appropriate to
-   * the payload's rcType field.
-   *
-   * @param payload the message
-   * @param page the <main> page to augment
-   */
-  static createFrom(payload: RemoteControlMessage): RemoteControlDisplay {
-    switch (payload.rcType) {
-    case 'joined':
-      return new RemoteControlJoinedDisplay(payload);
-    case 'info':
-      return new RemoteControlInfoDisplay(payload);
-    case 'freeform':
-      return new RemoteControlFreeformDisplay(payload);
-    case 'multichoice':
-      return new RemoteControlMultichoiceDisplay(payload);
-    }
-    throw `Invalid payload rcType ${payload.rcType}`;
-  }
-
 }
 
 /**
@@ -209,4 +188,46 @@ export class RemoteControlMultichoiceDisplay extends RemoteControlDisplay {
     }
   }
 
+}
+
+/**
+ * A singleton class which manages RemoteControlDisplay subclasses for
+ * different message types.
+ */
+export class RemoteControlDisplayRegistrar {
+  private map: Map<string, RemoteControlDisplayConstructor> = new Map();
+
+  static get(): RemoteControlDisplayRegistrar {
+    if (!_registrar) {
+      _registrar = new RemoteControlDisplayRegistrar();
+    }
+    return _registrar;
+  }
+
+  get(rcType: string): RemoteControlDisplayConstructor {
+    const result = this.map.get(rcType);
+    if (result === undefined) {
+      throw `Invalid rcType ${rcType}`;
+    }
+    return result;
+  }
+
+  createDisplay(payload: RemoteControlMessage): RemoteControlDisplay {
+    const cls = this.get(payload.rcType);
+    return new cls(payload);
+  }
+
+  register(rcType: string, cls: RemoteControlDisplayConstructor): void {
+    if (this.map.has(rcType)) {
+      throw `rcType ${rcType} is already registered`;
+    }
+    this.map.set(rcType, cls);
+  }
+
+}
+
+let _registrar: RemoteControlDisplayRegistrar | null = null;
+
+export interface RemoteControlDisplayConstructor {
+  new (payload: RemoteControlMessage): RemoteControlDisplay;
 }
