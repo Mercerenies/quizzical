@@ -1,7 +1,7 @@
 
 import { LFSR } from '../lfsr.js';
 import { RCID } from '../uuid.js';
-import { RemoteControlJoinedMessage, RemoteControlInfoMessage, RemoteControlFreeformMessage, RemoteControlMultichoiceMessage } from '../remote_control.js';
+import { RemoteControlMessage, RemoteControlJoinedMessage, RemoteControlInfoMessage } from '../remote_control.js';
 
 let _pageGenerator: RCPageGenerator | null = null;
 
@@ -22,6 +22,11 @@ export class RCPageGenerator {
     return this.lfsr.generate() as RCID;
   }
 
+  createPage<T extends RemoteControlMessage>(builder: RemoteControlMessageBuilder<T>): T {
+    const id = this.generateID();
+    return builder(id);
+  }
+
   joinedPage(): RemoteControlJoinedMessage {
     // Note: The joined page gets a unique ID globally, since it will
     // never require any feedback and is generated in several
@@ -33,30 +38,6 @@ export class RCPageGenerator {
     };
   }
 
-  infoPage(info: string): RemoteControlInfoMessage {
-    return {
-      rcType: "info",
-      rcId: this.generateID(),
-      rcParams: { info: info },
-    };
-  }
-
-  freeformPage(questionText: string, answerType: "number" | "text"): RemoteControlFreeformMessage {
-    return {
-      rcType: "freeform",
-      rcId: this.generateID(),
-      rcParams: { questionText, answerType },
-    };
-  }
-
-  multichoicePage(questionText: string, answerChoices: string[]): RemoteControlMultichoiceMessage {
-    return {
-      rcType: "multichoice",
-      rcId: this.generateID(),
-      rcParams: { questionText, answerChoices },
-    };
-  }
-
   static get(): RCPageGenerator {
     if (!_pageGenerator) {
       _pageGenerator = new RCPageGenerator();
@@ -64,4 +45,21 @@ export class RCPageGenerator {
     return _pageGenerator;
   }
 
+}
+
+/**
+ * A RemoteControlMessageBuilder is a RemoteControlMessage which is
+ * missing its RCID. RCPageGenerator uses this interface to construct
+ * instances of RemoteControlMessage.
+ */
+export interface RemoteControlMessageBuilder<T extends RemoteControlMessage> {
+  (rcid: RCID): T;
+}
+
+export function infoPage(info: string): RemoteControlMessageBuilder<RemoteControlInfoMessage> {
+  return (rcid: RCID) => ({
+    rcType: "info",
+    rcId: rcid,
+    rcParams: { info },
+  });
 }

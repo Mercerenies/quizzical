@@ -1,10 +1,11 @@
 
-import { RemoteControlMessage } from '../remote_control.js';
-import { RCPageGenerator } from '../remote_control/page_generator.js';
+import { RemoteControlMessage, RemoteControlFreeformMessage } from '../remote_control.js';
+import { RCPageGenerator, RemoteControlMessageBuilder } from '../remote_control/page_generator.js';
 import { Question } from '../question.js';
 import { Answer } from './answer.js';
 import { Displayable, HTTPGetDisplayable } from '../displayable.js';
 import { render } from '../renderer.js';
+import { RCID } from '../uuid.js';
 
 export class FreeformQuestion extends Question {
   readonly questionText: string;
@@ -21,7 +22,7 @@ export class FreeformQuestion extends Question {
   }
 
   makeRCMessage(): RemoteControlMessage {
-    return RCPageGenerator.get().freeformPage(this.questionText, this.answerType);
+    return RCPageGenerator.get().createPage(freeformPage(this.questionText, this.answerType));
   }
 
 }
@@ -39,4 +40,12 @@ export class FreeformQuestionDisplayable extends HTTPGetDisplayable {
     element.find("#question-text").html(questionText);
   }
 
+}
+
+export function freeformPage(questionText: string, answerType: "number" | "text"): RemoteControlMessageBuilder<RemoteControlFreeformMessage> {
+  return (rcid: RCID) => ({
+    rcType: "freeform",
+    rcId: rcid,
+    rcParams: { questionText, answerType },
+  });
 }

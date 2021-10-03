@@ -1,10 +1,11 @@
 
-import { RemoteControlMessage } from '../remote_control.js';
-import { RCPageGenerator } from '../remote_control/page_generator.js';
+import { RemoteControlMessage, RemoteControlMultichoiceMessage } from '../remote_control.js';
+import { RCPageGenerator, RemoteControlMessageBuilder } from '../remote_control/page_generator.js';
 import { Question } from '../question.js';
 import { ExactAnswer } from './answer.js';
 import { Displayable, HTTPGetDisplayable } from '../displayable.js';
 import { render } from '../renderer.js';
+import { RCID } from '../uuid.js';
 
 export class MultichoiceQuestion extends Question {
   readonly questionText: string;
@@ -21,7 +22,7 @@ export class MultichoiceQuestion extends Question {
   }
 
   makeRCMessage(): RemoteControlMessage {
-    return RCPageGenerator.get().multichoicePage(this.questionText, this.answerChoices);
+    return RCPageGenerator.get().createPage(multichoicePage(this.questionText, this.answerChoices));
   }
 
 }
@@ -50,4 +51,12 @@ export class MultichoiceQuestionDisplayable extends HTTPGetDisplayable {
 
   }
 
+}
+
+export function multichoicePage(questionText: string, answerChoices: string[]): RemoteControlMessageBuilder<RemoteControlMultichoiceMessage> {
+  return (rcid: RCID) => ({
+    rcType: "multichoice",
+    rcId: rcid,
+    rcParams: { questionText, answerChoices },
+  });
 }
