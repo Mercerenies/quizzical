@@ -1,6 +1,7 @@
 
 import { RCID } from './uuid.js';
-import { RemoteControlMessage, RCPageGenerator } from './remote_control.js';
+import { RemoteControlMessage } from './remote_control.js';
+import { RCPageGenerator } from './remote_control/page_generator.js';
 import { Displayable, ConstantDisplayable } from './displayable.js';
 import { Answer, NullAnswer } from './question/answer.js';
 

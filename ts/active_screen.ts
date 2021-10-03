@@ -1,6 +1,7 @@
 
 import { HostLobby } from './lobby.js';
-import { RemoteControlMessage, RCPageGenerator, REMOTE_CONTROL_MESSAGE_TYPE } from './remote_control.js';
+import { RemoteControlMessage, REMOTE_CONTROL_MESSAGE_TYPE } from './remote_control.js';
+import { RCPageGenerator } from './remote_control/page_generator.js';
 import { PlayerUUID, RCID } from './uuid.js';
 import { HasActiveRCID } from './question/response_collector.js';
 import { SignalHandler } from './signal.js';

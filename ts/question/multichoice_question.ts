@@ -1,5 +1,6 @@
 
-import { RemoteControlMessage, RCPageGenerator } from '../remote_control.js';
+import { RemoteControlMessage } from '../remote_control.js';
+import { RCPageGenerator } from '../remote_control/page_generator.js';
 import { Question } from '../question.js';
 import { ExactAnswer } from './answer.js';
 import { Displayable, HTTPGetDisplayable } from '../displayable.js';

@@ -3,7 +3,8 @@
 //
 // DEBUG CODE
 
-import { RemoteControlDisplay, RCPageGenerator, RemoteControlMessage, RC_TRANSLATION } from './remote_control.js';
+import { RCPageGenerator } from './remote_control/page_generator.js';
+import { RemoteControlDisplay, RemoteControlMessage, RC_TRANSLATION } from './remote_control.js';
 import { GuestLobby } from './lobby.js';
 
 export async function setupRCPage(): Promise<void> {
