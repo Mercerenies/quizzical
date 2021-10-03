@@ -42,7 +42,7 @@ export class MultichoiceQuestionDisplayable extends HTTPGetDisplayable {
     for (const answer of this.question.answerChoices) {
       const mdAnswer = await render(answer);
       options.push(`
-        <li>${mdAnswer}</li>
+        <li class="list-group-item">${mdAnswer}</li>
       `);
     }
     const answerText = `<ul class="list-group">${options.join('')}</ul>`;
