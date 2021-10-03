@@ -12,6 +12,7 @@ import { GameInitializer } from './game_initializer.js';
 import { Question } from './question.js';
 import { QuestionGenerator } from './question/generator.js';
 import { FreeformQuestion } from './question/freeform_question.js';
+import { MultichoiceQuestion } from './question/multichoice_question.js';
 import { ExactAnswer } from './question/answer.js';
 
 /**
@@ -36,7 +37,17 @@ export function setupNewGame(): void {
 // DEBUG CODE
 const DebugGenerator: QuestionGenerator = {
   generate(): Question {
-    const answer = Math.floor(Math.random() * 1000);
-    return new FreeformQuestion(`Test question (the answer is ${answer})`, "number", new ExactAnswer(''+answer));
+    switch (Math.floor(Math.random() * 2)) {
+    case 0: {
+      const answer = Math.floor(Math.random() * 1000);
+      return new FreeformQuestion(`Test question (the answer is ${answer})`, "number", new ExactAnswer(''+answer));
+    }
+    case 1: {
+      const answer = Math.floor(Math.random() * 4);
+      const options = ['A', 'B', 'C', 'D'];
+      return new MultichoiceQuestion(`Test question (the answer is ${options[answer]})`, options, answer);
+    }
+    }
+    throw "Unreachable?";
   }
 };

@@ -202,7 +202,7 @@ export class RemoteControlMultichoiceDisplay extends RemoteControlDisplay {
   }
 
   private getAnswerIndex(): number | undefined {
-    let index = 1;
+    let index = 0;
     for (const opt of this.page.find(".multichoice-answer")) {
       if ($(opt).hasClass("active")) {
         return index;
