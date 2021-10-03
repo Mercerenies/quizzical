@@ -39,8 +39,9 @@ export class RemoteControlListener implements SignalHandler<LobbyMessage> {
 
     $.get(pageURL).then((page) => {
       const jPage = $(page);
-      display.initialize(this.lobby, jPage);
-      $("main").replaceWith(jPage);
+      display.initialize(this.lobby, jPage).then(() => {
+        $("main").replaceWith(jPage);
+      });
     });
 
   }

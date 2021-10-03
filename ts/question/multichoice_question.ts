@@ -70,36 +70,31 @@ export class RemoteControlMultichoiceDisplay extends RemoteControlDisplay {
   readonly rcType: string = "multichoice";
   readonly httpGetTarget: string = "/rc/multichoice";
 
-  initialize(lobby: GuestLobby, page: JQuery<HTMLElement>): void { //// initialize should be async
-    super.initialize(lobby, page);
+  async initialize(lobby: GuestLobby, page: JQuery<HTMLElement>): Promise<void> {
+    await super.initialize(lobby, page);
 
     const payload = this.payload as RemoteControlMultichoiceMessage;
     const manager = new MultichoiceResponseManager(lobby, payload, page);
 
     const questionText = payload.rcParams.questionText;
-    render(questionText).then((mdQuestionText) => {
-      page.find("#question-text").html(mdQuestionText);
-    });
+    const mdQuestionText = await render(questionText);
+    page.find("#question-text").html(mdQuestionText);
 
     // Initialize the answer choices
-    (async () => {
+    const options = [];
+    for (const answer of payload.rcParams.answerChoices) {
+      const mdAnswer = await render(answer);
+      options.push(`
+        <a href="#" class="list-group-item list-group-item-action multichoice-answer">${mdAnswer}</a>
+      `);
+    }
+    const answerText = `<div class="list-group">${options.join('')}</div>`;
+    page.find("#question-answer").html(answerText);
 
-      const options = [];
-      for (const answer of payload.rcParams.answerChoices) {
-        const mdAnswer = await render(answer);
-        options.push(`
-          <a href="#" class="list-group-item list-group-item-action multichoice-answer">${mdAnswer}</a>
-        `);
-      }
-      const answerText = `<div class="list-group">${options.join('')}</div>`;
-      page.find("#question-answer").html(answerText);
-
-      page.find(".multichoice-answer").click((event) => {
-        manager.setAnswer($(event.currentTarget));
-        return false;
-      });
-
-    })();
+    page.find(".multichoice-answer").click((event) => {
+      manager.setAnswer($(event.currentTarget));
+      return false;
+    });
 
     page.find("#question-submit").click(() => manager.sendAnswer());
 

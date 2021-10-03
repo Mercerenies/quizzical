@@ -60,8 +60,8 @@ export class RemoteControlFreeformDisplay extends RemoteControlDisplay {
   readonly rcType: string = "freeform";
   readonly httpGetTarget: string = "/rc/freeform";
 
-  initialize(lobby: GuestLobby, page: JQuery<HTMLElement>): void {
-    super.initialize(lobby, page);
+  async initialize(lobby: GuestLobby, page: JQuery<HTMLElement>): Promise<void> {
+    await super.initialize(lobby, page);
 
     const payload = this.payload as RemoteControlFreeformMessage;
     validateAnswerType(payload);
@@ -69,9 +69,8 @@ export class RemoteControlFreeformDisplay extends RemoteControlDisplay {
     const manager = new FreeformResponseManager(lobby, payload, page);
 
     const questionText = payload.rcParams.questionText;
-    render(questionText).then((mdQuestionText) => {
-      page.find("#question-text").html(mdQuestionText);
-    });
+    const mdQuestionText = await render(questionText);
+    page.find("#question-text").html(mdQuestionText);
     page.find("#question-answer").attr("type", payload.rcParams.answerType);
     Util.enterToButton(page.find("#question-answer"), page.find("#question-submit"));
 

@@ -31,13 +31,12 @@ export class RemoteControlInfoDisplay extends RemoteControlDisplay {
   readonly rcType: string = "info";
   readonly httpGetTarget: string = "/rc/info";
 
-  initialize(lobby: GuestLobby, page: JQuery<HTMLElement>): void {
-    super.initialize(lobby, page);
+  async initialize(lobby: GuestLobby, page: JQuery<HTMLElement>): Promise<void> {
+    await super.initialize(lobby, page);
     const payload = this.payload as RemoteControlInfoMessage;
     const info = payload.rcParams.info;
-    render(info).then((mdInfo) => {
-      page.find("#informational-message").html(mdInfo);
-    });
+    const mdInfo = await render(info);
+    page.find("#informational-message").html(mdInfo);
   }
 
 }

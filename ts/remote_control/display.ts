@@ -24,10 +24,11 @@ export abstract class RemoteControlDisplay {
    * frequently extend this method's functionality to provide
    * form-specific initialization.
    */
-  initialize(lobby: GuestLobby, page: JQuery<HTMLElement>): void {
+  initialize(lobby: GuestLobby, page: JQuery<HTMLElement>): Promise<void> {
     page.find("#player-name").text(lobby.playerName);
     page.find("#game-code").text(lobby.code);
     page.data("rcid", this.payload.rcId);
+    return Promise.resolve(undefined);
   }
 
 }

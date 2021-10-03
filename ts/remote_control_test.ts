@@ -44,6 +44,6 @@ async function establishPage(payload: RemoteControlMessage, replacement: JQuery<
   const display = RemoteControlDisplayRegistrar.get().createDisplay(payload);
   const page = await $.get(display.httpGetTarget);
   const jPage = $(page);
-  display.initialize({ playerName: "Test Player Name", code: "XXXX" } as GuestLobby, jPage); // Just for testing :)
+  await display.initialize({ playerName: "Test Player Name", code: "XXXX" } as GuestLobby, jPage); // Just for testing :)
   replacement.replaceWith(jPage);
 }
