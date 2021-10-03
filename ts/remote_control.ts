@@ -28,6 +28,7 @@ export const RC_TRANSLATION = {
   'joined': '/rc/joined',
   'info': '/rc/info',
   'freeform': '/rc/freeform',
+  'multichoice': '/rc/multichoice',
 };
 
 /**
@@ -77,6 +78,8 @@ export class RemoteControlDisplay {
       return new RemoteControlInfoDisplay(payload, page);
     case 'freeform':
       return new RemoteControlFreeformDisplay(payload, page);
+    case 'multichoice':
+      return new RemoteControlMultichoiceDisplay(payload, page);
     }
   }
 
@@ -150,6 +153,84 @@ export class RemoteControlFreeformDisplay extends RemoteControlDisplay {
 
 }
 
+// TODO Feedback when question is answered
+
+/**
+ * A RemoteControlDisplay for the "multichoice" RC type.
+ */
+export class RemoteControlMultichoiceDisplay extends RemoteControlDisplay {
+  readonly rcType: keyof typeof RC_TRANSLATION = "multichoice";
+
+  initialize(lobby: GuestLobby): void { //// initialize should be async
+    super.initialize(lobby);
+
+    const payload = this.payload as RemoteControlMultichoiceMessage;
+    const questionText = payload.rcParams.questionText;
+    render(questionText).then((mdQuestionText) => {
+      this.page.find("#question-text").html(mdQuestionText);
+    });
+
+    // Initialize the answer choices
+    (async () => {
+
+      const options = [];
+      for (const answer of payload.rcParams.answerChoices) {
+        const mdAnswer = await render(answer);
+        options.push(`
+          <a href="#" class="list-group-item list-group-item-action multichoice-answer">${mdAnswer}</li>
+        `);
+      }
+      const answerText = `<div class="list-group">${options.join('')}</ul>`;
+      this.page.find("#question-answer").html(answerText);
+
+      this.page.find(".multichoice-answer").click((event) => {
+        console.log(event.currentTarget);
+        this.setAnswer($(event.currentTarget));
+        return false;
+      });
+
+    })();
+
+    this.page.find("#question-submit").click(() => this.sendAnswer(lobby));
+
+  }
+
+  private setAnswer(selection: JQuery<HTMLElement>) {
+    const options = this.page.find(".multichoice-answer");
+    options.removeClass("active");
+    selection.addClass("active");
+  }
+
+  private getAnswerIndex(): number | undefined {
+    let index = 1;
+    for (const opt of this.page.find(".multichoice-answer")) {
+      if ($(opt).hasClass("active")) {
+        return index;
+      }
+      index += 1;
+    }
+    return undefined;
+  }
+
+  private sendAnswer(lobby: GuestLobby): void {
+    // TODO Feedback on bad answer (also on Freeform as well)
+    const answerIndex = this.getAnswerIndex();
+    if (answerIndex !== undefined) {
+
+      const response: QuestionResponse = {
+        rcId: this.payload.rcId,
+        responseType: "multichoice",
+        body: '' + answerIndex,
+      };
+
+      const message = lobby.newMessage(QUESTION_RESPONSE_MESSAGE_TYPE, response);
+      lobby.sendMessageTo(lobby.hostId, message);
+
+    }
+  }
+
+}
+
 /**
  * A SignalHandler which displays remote control screens, based on
  * received messages of type REMOTE_CONTROL_MESSAGE_TYPE.
@@ -218,6 +299,17 @@ export interface RemoteControlFreeformMessage extends RemoteControlMessage {
   };
 }
 
+/**
+ * A message for a "multichoice" display.
+ */
+export interface RemoteControlMultichoiceMessage extends RemoteControlMessage {
+  rcType: "multichoice";
+  rcParams: {
+    questionText: string,
+    answerChoices: string[],
+  };
+}
+
 let _pageGenerator: RCPageGenerator | null = null;
 
 /**
@@ -261,6 +353,14 @@ export class RCPageGenerator {
       rcType: "freeform",
       rcId: this.generateID(),
       rcParams: { questionText, answerType },
+    };
+  }
+
+  multichoicePage(questionText: string, answerChoices: string[]): RemoteControlMultichoiceMessage {
+    return {
+      rcType: "multichoice",
+      rcId: this.generateID(),
+      rcParams: { questionText, answerChoices },
     };
   }
 

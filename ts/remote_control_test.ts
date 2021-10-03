@@ -10,6 +10,7 @@ export async function setupRCPage(): Promise<void> {
   await setupJoined();
   await setupInfo();
   await setupFreeform();
+  await setupMultichoice();
 }
 
 async function setupJoined(): Promise<void> {
@@ -25,6 +26,11 @@ async function setupInfo(): Promise<void> {
 async function setupFreeform(): Promise<void> {
   const freeformMessage = RCPageGenerator.get().freeformPage("This is an example question: $x^2$", "text");
   await establishPage(freeformMessage, $("#freeform-banner"));
+}
+
+async function setupMultichoice(): Promise<void> {
+  const multichoiceMessage = RCPageGenerator.get().multichoicePage("Multiple Choice *Example Question*", ["Answer 1", "Answer 2", "Answer 3"]);
+  await establishPage(multichoiceMessage, $("#multichoice-banner"));
 }
 
 async function establishPage(payload: RemoteControlMessage, replacement: JQuery<HTMLElement>): Promise<void> {
