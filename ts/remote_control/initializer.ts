@@ -1,5 +1,8 @@
 
-import { RemoteControlDisplayRegistrar, RemoteControlJoinedDisplay, RemoteControlInfoDisplay, RemoteControlFreeformDisplay, RemoteControlMultichoiceDisplay } from './display.js';
+import { RemoteControlDisplayRegistrar, RemoteControlJoinedDisplay } from './display.js';
+import { RemoteControlInfoDisplay } from '../question/info_question.js';
+import { RemoteControlFreeformDisplay } from '../question/freeform_question.js';
+import { RemoteControlMultichoiceDisplay } from '../question/multichoice_question.js';
 
 /**
  * Initializes the RemoteControlDisplayRegistrar singleton with the

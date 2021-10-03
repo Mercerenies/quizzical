@@ -1,11 +1,14 @@
 
 import { RemoteControlMessage, RemoteControlFreeformMessage } from '../remote_control.js';
+import { RemoteControlDisplay } from '../remote_control/display.js';
 import { RCPageGenerator, RemoteControlMessageBuilder } from '../remote_control/page_generator.js';
-import { Question } from '../question.js';
+import { Question, QuestionResponse, QUESTION_RESPONSE_MESSAGE_TYPE } from '../question.js';
 import { Answer } from './answer.js';
 import { Displayable, HTTPGetDisplayable } from '../displayable.js';
 import { render } from '../renderer.js';
 import { RCID } from '../uuid.js';
+import { GuestLobby } from '../lobby.js';
+import * as Util from '../util.js';
 
 export class FreeformQuestion extends Question {
   readonly questionText: string;
@@ -48,4 +51,49 @@ export function freeformPage(questionText: string, answerType: "number" | "text"
     rcId: rcid,
     rcParams: { questionText, answerType },
   });
+}
+
+/**
+ * A RemoteControlDisplay for the "freeform" RC type.
+ */
+export class RemoteControlFreeformDisplay extends RemoteControlDisplay {
+  readonly rcType: string = "freeform";
+  readonly httpGetTarget: string = "/rc/freeform";
+
+  initialize(lobby: GuestLobby, page: JQuery<HTMLElement>): void {
+    super.initialize(lobby, page);
+    this.validateAnswerType();
+
+    const payload = this.payload as RemoteControlFreeformMessage;
+    const questionText = payload.rcParams.questionText;
+    render(questionText).then((mdQuestionText) => {
+      page.find("#question-text").html(mdQuestionText);
+    });
+    page.find("#question-answer").attr("type", payload.rcParams.answerType);
+    Util.enterToButton(page.find("#question-answer"), page.find("#question-submit"));
+
+    page.find("#question-submit").click(() => this.sendAnswer(lobby));
+
+  }
+
+  private validateAnswerType(): void {
+    // Validate that the answerType is what it's supposed to be
+    // (before blindly storing it in the HTML).
+    const payload = this.payload as RemoteControlFreeformMessage;
+    if (!["number", "text"].includes(payload.rcParams.answerType)) {
+      throw `Invalid answerType in RemoteControlFreeformDisplay: ${payload.rcParams.answerType}`;
+    }
+  }
+
+  private sendAnswer(lobby: GuestLobby): void {
+    const answer = $("#question-answer").val() as string;
+    const response: QuestionResponse = {
+      rcId: this.payload.rcId,
+      responseType: "freeform",
+      body: answer,
+    };
+    const message = lobby.newMessage(QUESTION_RESPONSE_MESSAGE_TYPE, response);
+    lobby.sendMessageTo(lobby.hostId, message);
+  }
+
 }
