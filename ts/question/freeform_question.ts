@@ -62,9 +62,12 @@ export class RemoteControlFreeformDisplay extends RemoteControlDisplay {
 
   initialize(lobby: GuestLobby, page: JQuery<HTMLElement>): void {
     super.initialize(lobby, page);
-    this.validateAnswerType();
 
     const payload = this.payload as RemoteControlFreeformMessage;
+    validateAnswerType(payload);
+
+    const manager = new FreeformResponseManager(lobby, payload, page);
+
     const questionText = payload.rcParams.questionText;
     render(questionText).then((mdQuestionText) => {
       page.find("#question-text").html(mdQuestionText);
@@ -72,28 +75,40 @@ export class RemoteControlFreeformDisplay extends RemoteControlDisplay {
     page.find("#question-answer").attr("type", payload.rcParams.answerType);
     Util.enterToButton(page.find("#question-answer"), page.find("#question-submit"));
 
-    page.find("#question-submit").click(() => this.sendAnswer(lobby));
+    page.find("#question-submit").click(() => manager.sendAnswer());
 
   }
 
-  private validateAnswerType(): void {
-    // Validate that the answerType is what it's supposed to be
-    // (before blindly storing it in the HTML).
-    const payload = this.payload as RemoteControlFreeformMessage;
-    if (!["number", "text"].includes(payload.rcParams.answerType)) {
-      throw `Invalid answerType in RemoteControlFreeformDisplay: ${payload.rcParams.answerType}`;
-    }
+}
+
+function validateAnswerType(payload: RemoteControlFreeformMessage): void {
+  // Validate that the answerType is what it's supposed to be
+  // (before blindly storing it in the HTML).
+  if (!["number", "text"].includes(payload.rcParams.answerType)) {
+    throw `Invalid answerType in RemoteControlFreeformDisplay: ${payload.rcParams.answerType}`;
+  }
+}
+
+class FreeformResponseManager {
+  private lobby: GuestLobby;
+  private payload: RemoteControlFreeformMessage;
+  private page: JQuery<HTMLElement>;
+
+  constructor(lobby: GuestLobby, payload: RemoteControlFreeformMessage, page: JQuery<HTMLElement>) {
+    this.lobby = lobby;
+    this.payload = payload;
+    this.page = page;
   }
 
-  private sendAnswer(lobby: GuestLobby): void {
-    const answer = $("#question-answer").val() as string;
+  sendAnswer(): void {
+    const answer = this.page.find("#question-answer").val() as string;
     const response: QuestionResponse = {
       rcId: this.payload.rcId,
       responseType: "freeform",
       body: answer,
     };
-    const message = lobby.newMessage(QUESTION_RESPONSE_MESSAGE_TYPE, response);
-    lobby.sendMessageTo(lobby.hostId, message);
+    const message = this.lobby.newMessage(QUESTION_RESPONSE_MESSAGE_TYPE, response);
+    this.lobby.sendMessageTo(this.lobby.hostId, message);
   }
 
 }

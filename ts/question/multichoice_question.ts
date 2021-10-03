@@ -74,6 +74,8 @@ export class RemoteControlMultichoiceDisplay extends RemoteControlDisplay {
     super.initialize(lobby, page);
 
     const payload = this.payload as RemoteControlMultichoiceMessage;
+    const manager = new MultichoiceResponseManager(lobby, payload, page);
+
     const questionText = payload.rcParams.questionText;
     render(questionText).then((mdQuestionText) => {
       page.find("#question-text").html(mdQuestionText);
@@ -93,27 +95,38 @@ export class RemoteControlMultichoiceDisplay extends RemoteControlDisplay {
       page.find("#question-answer").html(answerText);
 
       page.find(".multichoice-answer").click((event) => {
-        console.log(event.currentTarget);
-        this.setAnswer($(event.currentTarget), page);
+        manager.setAnswer($(event.currentTarget));
         return false;
       });
 
     })();
 
-    page.find("#question-submit").click(() => this.sendAnswer(lobby, page));
+    page.find("#question-submit").click(() => manager.sendAnswer());
 
   }
 
-  // TODO Move these private guys to a new class that has page (and the same for the other RCDisplay instances)
-  private setAnswer(selection: JQuery<HTMLElement>, page: JQuery<HTMLElement>) {
-    const options = page.find(".multichoice-answer");
+}
+
+class MultichoiceResponseManager {
+  private lobby: GuestLobby;
+  private payload: RemoteControlMultichoiceMessage;
+  private page: JQuery<HTMLElement>;
+
+  constructor(lobby: GuestLobby, payload: RemoteControlMultichoiceMessage, page: JQuery<HTMLElement>) {
+    this.lobby = lobby;
+    this.payload = payload;
+    this.page = page;
+  }
+
+  setAnswer(selection: JQuery<HTMLElement>) {
+    const options = this.page.find(".multichoice-answer");
     options.removeClass("active");
     selection.addClass("active");
   }
 
-  private getAnswerIndex(page: JQuery<HTMLElement>): number | undefined {
+  getAnswerIndex(): number | undefined {
     let index = 0;
-    for (const opt of page.find(".multichoice-answer")) {
+    for (const opt of this.page.find(".multichoice-answer")) {
       if ($(opt).hasClass("active")) {
         return index;
       }
@@ -122,9 +135,9 @@ export class RemoteControlMultichoiceDisplay extends RemoteControlDisplay {
     return undefined;
   }
 
-  private sendAnswer(lobby: GuestLobby, page: JQuery<HTMLElement>): void {
+  sendAnswer(): void {
     // TODO Feedback on bad answer (also on Freeform as well)
-    const answerIndex = this.getAnswerIndex(page);
+    const answerIndex = this.getAnswerIndex();
     if (answerIndex !== undefined) {
 
       const response: QuestionResponse = {
@@ -133,8 +146,8 @@ export class RemoteControlMultichoiceDisplay extends RemoteControlDisplay {
         body: '' + answerIndex,
       };
 
-      const message = lobby.newMessage(QUESTION_RESPONSE_MESSAGE_TYPE, response);
-      lobby.sendMessageTo(lobby.hostId, message);
+      const message = this.lobby.newMessage(QUESTION_RESPONSE_MESSAGE_TYPE, response);
+      this.lobby.sendMessageTo(this.lobby.hostId, message);
 
     }
   }
