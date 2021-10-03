@@ -4,7 +4,7 @@
 // DEBUG CODE
 
 import { RCPageGenerator } from './remote_control/page_generator.js';
-import { RemoteControlMessage, RC_TRANSLATION } from './remote_control.js';
+import { RemoteControlMessage } from './remote_control.js';
 import { RemoteControlDisplay } from './remote_control/display.js';
 import { GuestLobby } from './lobby.js';
 import { infoPage } from './question/info_question.js';
@@ -39,9 +39,9 @@ async function setupMultichoice(): Promise<void> {
 }
 
 async function establishPage(payload: RemoteControlMessage, replacement: JQuery<HTMLElement>): Promise<void> {
-  const page = await $.get(RC_TRANSLATION[payload.rcType]);
-  const jPage = $(page);
   const display = RemoteControlDisplay.createFrom(payload);
+  const page = await $.get(display.httpGetTarget);
+  const jPage = $(page);
   display.initialize({ playerName: "Test Player Name", code: "XXXX" } as GuestLobby, jPage); // Just for testing :)
   replacement.replaceWith(jPage);
 }

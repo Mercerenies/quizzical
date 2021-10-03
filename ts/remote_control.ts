@@ -12,21 +12,7 @@ import { LobbyMessage } from './lobby/listener.js';
 import { RCID } from './uuid.js';
 import { RemoteControlDisplay } from './remote_control/display.js';
 
-const hasOwnProperty = Object.prototype.hasOwnProperty;
-
 export const REMOTE_CONTROL_MESSAGE_TYPE = "RemoteControl.REMOTE_CONTROL_MESSAGE_TYPE";
-
-/**
- * The translation table, which translates rcType fields to HTTP GET
- * request targets. The valid rcType field values are defined to be
- * the keys of this object (i.e. keyof RC_TRANSLATION).
- */
-export const RC_TRANSLATION = { ////
-  'joined': '/rc/joined',
-  'info': '/rc/info',
-  'freeform': '/rc/freeform',
-  'multichoice': '/rc/multichoice',
-};
 
 /**
  * A SignalHandler which displays remote control screens, based on
@@ -48,10 +34,11 @@ export class RemoteControlListener implements SignalHandler<LobbyMessage> {
       return;
     }
 
-    const pageURL = RC_TRANSLATION[payload.rcType];
+    //// Registrar
+    const display = RemoteControlDisplay.createFrom(payload);
+    const pageURL = display.httpGetTarget;
 
     $.get(pageURL).then((page) => {
-      const display = RemoteControlDisplay.createFrom(payload);
       const jPage = $(page);
       display.initialize(this.lobby, jPage);
       $("main").replaceWith(jPage);
@@ -66,7 +53,7 @@ export class RemoteControlListener implements SignalHandler<LobbyMessage> {
  * REMOTE_CONTROL_MESSAGE_TYPE.
  */
 export interface RemoteControlMessage {
-  rcType: keyof typeof RC_TRANSLATION;
+  rcType: string;
   rcId: RCID;
   rcParams: unknown;
 }
@@ -118,10 +105,7 @@ function asRCMessage(message: unknown): RemoteControlMessage | undefined {
   // TODO Better validation
   const rcMessage = message as RemoteControlMessage;
 
-  if (!hasOwnProperty.call(RC_TRANSLATION, rcMessage.rcType)) {
-    console.warn(`Got invalid rcType ${rcMessage.rcType}`);
-    return undefined;
-  }
+  //// registrar
 
   return rcMessage;
 }

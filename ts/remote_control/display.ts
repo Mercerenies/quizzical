@@ -2,7 +2,7 @@
 import { GuestLobby } from '../lobby.js';
 import { QUESTION_RESPONSE_MESSAGE_TYPE, QuestionResponse } from '../question.js';
 import { render } from '../renderer.js';
-import { RemoteControlMessage, RemoteControlInfoMessage, RemoteControlFreeformMessage, RemoteControlMultichoiceMessage, RC_TRANSLATION } from '../remote_control.js';
+import { RemoteControlMessage, RemoteControlInfoMessage, RemoteControlFreeformMessage, RemoteControlMultichoiceMessage } from '../remote_control.js';
 import * as Util from '../util.js';
 
 /**
@@ -10,8 +10,10 @@ import * as Util from '../util.js';
  * can be wrapped in this class, which initializes it with properties
  * specific to this game.
  */
-export class RemoteControlDisplay {
+export abstract class RemoteControlDisplay {
   readonly payload: RemoteControlMessage;
+  abstract readonly rcType: string;
+  abstract readonly httpGetTarget: string;
 
   /**
    * Constructs a raw RemoteControlDisplay.
@@ -53,6 +55,7 @@ export class RemoteControlDisplay {
     case 'multichoice':
       return new RemoteControlMultichoiceDisplay(payload);
     }
+    throw `Invalid payload rcType ${payload.rcType}`;
   }
 
 }
@@ -61,14 +64,16 @@ export class RemoteControlDisplay {
  * A RemoteControlDisplay for the "joined" RC type.
  */
 export class RemoteControlJoinedDisplay extends RemoteControlDisplay {
-  readonly rcType: keyof typeof RC_TRANSLATION = "joined";
+  readonly rcType: string = "joined";
+  readonly httpGetTarget: string = "/rc/joined";
 }
 
 /**
  * A RemoteControlDisplay for the "info" RC type.
  */
 export class RemoteControlInfoDisplay extends RemoteControlDisplay {
-  readonly rcType: keyof typeof RC_TRANSLATION = "info";
+  readonly rcType: string = "info";
+  readonly httpGetTarget: string = "/rc/info";
 
   initialize(lobby: GuestLobby, page: JQuery<HTMLElement>): void {
     super.initialize(lobby, page);
@@ -85,7 +90,8 @@ export class RemoteControlInfoDisplay extends RemoteControlDisplay {
  * A RemoteControlDisplay for the "freeform" RC type.
  */
 export class RemoteControlFreeformDisplay extends RemoteControlDisplay {
-  readonly rcType: keyof typeof RC_TRANSLATION = "freeform";
+  readonly rcType: string = "freeform";
+  readonly httpGetTarget: string = "/rc/freeform";
 
   initialize(lobby: GuestLobby, page: JQuery<HTMLElement>): void {
     super.initialize(lobby, page);
@@ -131,7 +137,8 @@ export class RemoteControlFreeformDisplay extends RemoteControlDisplay {
  * A RemoteControlDisplay for the "multichoice" RC type.
  */
 export class RemoteControlMultichoiceDisplay extends RemoteControlDisplay {
-  readonly rcType: keyof typeof RC_TRANSLATION = "multichoice";
+  readonly rcType: string = "multichoice";
+  readonly httpGetTarget: string = "/rc/multichoice";
 
   initialize(lobby: GuestLobby, page: JQuery<HTMLElement>): void { //// initialize should be async
     super.initialize(lobby, page);
