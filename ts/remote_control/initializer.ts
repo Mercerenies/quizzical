@@ -3,6 +3,7 @@ import { RemoteControlDisplayRegistrar, RemoteControlJoinedDisplay } from './dis
 import { RemoteControlInfoDisplay } from '../question/info_question.js';
 import { RemoteControlFreeformDisplay } from '../question/freeform_question.js';
 import { RemoteControlMultichoiceDisplay } from '../question/multichoice_question.js';
+import { RemoteControlSelectallDisplay } from '../question/selectall_question.js';
 
 /**
  * Initializes the RemoteControlDisplayRegistrar singleton with the
@@ -15,5 +16,6 @@ export function initializeRCDisplays(): void {
   registrar.register('info', RemoteControlInfoDisplay);
   registrar.register('freeform', RemoteControlFreeformDisplay);
   registrar.register('multichoice', RemoteControlMultichoiceDisplay);
+  registrar.register('selectall', RemoteControlSelectallDisplay);
 
 }

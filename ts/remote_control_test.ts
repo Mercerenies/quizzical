@@ -11,6 +11,7 @@ import { GuestLobby } from './lobby.js';
 import { infoPage } from './question/info_question.js';
 import { freeformPage } from './question/freeform_question.js';
 import { multichoicePage } from './question/multichoice_question.js';
+import { selectallPage } from './question/selectall_question.js';
 
 export async function setupRCPage(): Promise<void> {
   initializeRCDisplays();
@@ -18,6 +19,7 @@ export async function setupRCPage(): Promise<void> {
   await setupInfo();
   await setupFreeform();
   await setupMultichoice();
+  await setupSelectall();
 }
 
 async function setupJoined(): Promise<void> {
@@ -38,6 +40,11 @@ async function setupFreeform(): Promise<void> {
 async function setupMultichoice(): Promise<void> {
   const multichoiceMessage = RCPageGenerator.get().createPage(multichoicePage("Multiple Choice *Example Question*", ["Answer 1", "Answer 2", "Answer 3"]));
   await establishPage(multichoiceMessage, $("#multichoice-banner"));
+}
+
+async function setupSelectall(): Promise<void> {
+  const selectallMessage = RCPageGenerator.get().createPage(selectallPage("*(Select all that apply)*", ["Answer 1", "Answer 2", "Answer 3"]));
+  await establishPage(selectallMessage, $("#selectall-banner"));
 }
 
 async function establishPage(payload: RemoteControlMessage, replacement: JQuery<HTMLElement>): Promise<void> {

@@ -93,6 +93,14 @@ get '/display/multichoice' do
   erb :'display/multichoice_question', layout: false
 end
 
+get '/rc/selectall' do
+  erb :'remote_control/selectall_question', layout: false
+end
+
+get '/display/selectall' do
+  erb :'display/selectall_question', layout: false
+end
+
 get '/listen' do
   content_type 'application/json'
   code = $lobbies.start_new_lobby(UUID.get(session))

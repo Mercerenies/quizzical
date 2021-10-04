@@ -13,6 +13,7 @@ import { Question } from './question.js';
 import { QuestionGenerator } from './question/generator.js';
 import { FreeformQuestion } from './question/freeform_question.js';
 import { MultichoiceQuestion } from './question/multichoice_question.js';
+import { SelectallQuestion } from './question/selectall_question.js';
 import { ExactAnswer } from './question/answer.js';
 import { initializeRCDisplays } from './remote_control/initializer.js';
 
@@ -40,7 +41,7 @@ export function setupNewGame(): void {
 // DEBUG CODE
 const DebugGenerator: QuestionGenerator = {
   generate(): Question {
-    switch (Math.floor(Math.random() * 2)) {
+    switch (Math.floor(Math.random() * 3)) {
     case 0: {
       const answer = Math.floor(Math.random() * 1000);
       return new FreeformQuestion(`Test question (the answer is ${answer})`, "number", new ExactAnswer(''+answer));
@@ -49,6 +50,11 @@ const DebugGenerator: QuestionGenerator = {
       const answer = Math.floor(Math.random() * 4);
       const options = ['A', 'B', 'C', 'D'];
       return new MultichoiceQuestion(`Test question (the answer is ${options[answer]})`, options, answer);
+    }
+    case 2: {
+      const answer = Math.floor(Math.random() * 4); ///// Make this select multiple :)
+      const options = ['A', 'B', 'C', 'D'];
+      return new SelectallQuestion(`Select all that apply (the answer is ${options[answer]})`, options, [answer]);
     }
     }
     throw "Unreachable?";
