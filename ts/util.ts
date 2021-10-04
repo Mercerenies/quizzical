@@ -25,3 +25,20 @@ export function setButtonEnabled(button: JQuery<HTMLElement>, state: boolean): v
   button.attr('disabled', disabled);
   button.attr('aria-disabled', disabled);
 }
+
+/**
+ * A random sublist of the iterable given. Every element has a 50%
+ * chance of being included. The resulting sublist will contain
+ * elements in the same order as the original.
+ * @param collection the input collection
+ * @return a random sublist of the original input collection
+ */
+export function randomSublist<T>(collection: Iterable<T>): T[] {
+  const results = [];
+  for (const elem of collection) {
+    if (Math.random() < 0.5) {
+      results.push(elem);
+    }
+  }
+  return results;
+}

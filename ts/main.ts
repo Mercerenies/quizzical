@@ -16,6 +16,7 @@ import { MultichoiceQuestion } from './question/multichoice_question.js';
 import { SelectallQuestion } from './question/selectall_question.js';
 import { ExactAnswer } from './question/answer.js';
 import { initializeRCDisplays } from './remote_control/initializer.js';
+import * as Util from './util.js';
 
 /**
  * Set up the game page. Should be called once after the page is
@@ -52,9 +53,13 @@ const DebugGenerator: QuestionGenerator = {
       return new MultichoiceQuestion(`Test question (the answer is ${options[answer]})`, options, answer);
     }
     case 2: {
-      const answer = Math.floor(Math.random() * 4); ///// Make this select multiple :)
+      const answer = Util.randomSublist([0, 1, 2, 3]);
       const options = ['A', 'B', 'C', 'D'];
-      return new SelectallQuestion(`Select all that apply (the answer is ${options[answer]})`, options, [answer]);
+      let optionsDisplay = answer.map((x) => options[x]).join(', ');
+      if (optionsDisplay === '') {
+        optionsDisplay = '(none)';
+      }
+      return new SelectallQuestion(`Select all that apply (the answer is ${optionsDisplay})`, options, answer);
     }
     }
     throw "Unreachable?";
