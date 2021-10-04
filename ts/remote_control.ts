@@ -75,7 +75,5 @@ function asRCMessage(message: unknown): RemoteControlMessage | undefined {
   // TODO Better validation
   const rcMessage = message as RemoteControlMessage;
 
-  //// registrar
-
   return rcMessage;
 }

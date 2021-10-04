@@ -121,7 +121,7 @@ class SelectallResponseManager {
     }
   }
 
-  getAnswerIndices(): number[] { //// Do we want to forbid answers that have no selections?
+  getAnswerIndices(): number[] { // TODO Do we want to forbid answers that have no selections?
     const indices = [];
     let index = 0;
     for (const opt of this.page.find(".selectall-answer")) {
