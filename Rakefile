@@ -9,6 +9,11 @@ task :tsc do
   sh 'tsc'
 end
 
+desc "Build the Lua runner"
+task :lua do
+  sh 'make', { chdir: 'lua' }
+end
+
 desc "Run the webserver"
 task :run do
   ruby './server/server.rb'

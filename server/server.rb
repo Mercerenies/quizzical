@@ -57,6 +57,10 @@ get '/remote-control-test' do
   erb :remote_control_test
 end
 
+get '/lua-test' do
+  erb :lua_test
+end
+
 get '/game' do
   erb :game
 end
