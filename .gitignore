@@ -6,3 +6,4 @@ build-cache/
 docs/
 *.o
 *.a
+lua/lua-5.4.0/lua
