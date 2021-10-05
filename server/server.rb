@@ -34,6 +34,7 @@ configure do
   set :root, root_dir.to_s
 
   set :server, :thin
+  mime_type :mjs, 'application/javascript'
 
   # Initialize the database
   db_dir.mkpath
