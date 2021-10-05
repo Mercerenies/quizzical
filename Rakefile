@@ -12,6 +12,7 @@ end
 desc "Build the Lua runner"
 task :lua do
   sh 'make', { chdir: 'lua' }
+  sh 'cp', *Dir.glob("./lua/*.mjs"), *Dir.glob("./lua/*.wasm"), "./public/"
 end
 
 desc "Run the webserver"
