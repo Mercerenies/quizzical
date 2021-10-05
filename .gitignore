@@ -1,6 +1,7 @@
 *~
 db/
 public/**/*.js
+public/**/*.mjs
 node_modules/
 build-cache/
 docs/
@@ -9,3 +10,4 @@ docs/
 *.wasm
 lua/lua-5.4.0/lua
 lua/**/*.js
+lua/**/*.mjs
