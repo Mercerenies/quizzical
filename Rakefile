@@ -1,8 +1,11 @@
 
 require 'rake/clean'
 
-desc "Build the Typescript and run the webserver"
-task default: %w[tsc run]
+desc "Build the code and run the webserver"
+task default: %w[build run]
+
+desc "Build the code"
+task build: %w[tsc lua]
 
 desc "Build the Typescript client code"
 task :tsc do
@@ -12,7 +15,12 @@ end
 desc "Build the Lua runner"
 task :lua do
   sh 'make', { chdir: 'lua' }
-  sh 'cp', *Dir.glob("./lua/*.mjs"), *Dir.glob("./lua/*.wasm"), "./public/"
+  Dir.glob("./lua/*.mjs").each do |mjs_file|
+    mjs_file =~ /([^\/]*)\.mjs$/ or raise("Could not copy #{mjs_file}")
+    js_file = "./public/#{$1}.js";
+    sh 'cp', mjs_file, js_file
+  end
+  sh 'cp', *Dir.glob("./lua/*.wasm"), "./public/"
 end
 
 desc "Run the webserver"
