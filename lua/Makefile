@@ -1,6 +1,6 @@
 
 CC=emcc
-CCFLAGS=-Wall -s WASM=1 -s EXPORT_ALL=1 -s EXPORTED_RUNTIME_METHODS='["ccall","cwrap"]'
+CCFLAGS=-Wall -s WASM=1 -s EXPORT_ALL=1 -s EXPORTED_RUNTIME_METHODS='["ccall","cwrap"]' -s EXPORT_ES6=1 -s MODULARIZE=1
 
 all:	lua luatest.wasm
 
