@@ -1,14 +1,13 @@
 
 import LModule from './lua_bridge.js';
 import * as Util from './util.js';
-
-type pointer = number;
+import { pointer, ErrorCode } from './lua/constants.js';
 
 class LuaBridge {
   private emModule: LModule.LuaBridgeModule;
   private lua_bridge_init: () => pointer;
   private lua_bridge_free: (state: pointer) => void;
-  private lua_bridge_dostring: (state: pointer, input: string) => void;
+  private lua_bridge_dostring: (state: pointer, input: string) => number;
   private state: pointer;
 
   constructor(emModule: LModule.LuaBridgeModule) {
@@ -16,7 +15,7 @@ class LuaBridge {
 
     this.lua_bridge_init = this.emModule.cwrap('lua_bridge_init', 'number', []);
     this.lua_bridge_free = this.emModule.cwrap('lua_bridge_free', null, ['number']);
-    this.lua_bridge_dostring = this.emModule.cwrap('lua_bridge_dostring', null, ['number', 'string']);
+    this.lua_bridge_dostring = this.emModule.cwrap('lua_bridge_dostring', 'number', ['number', 'string']);
 
     this.state = this.lua_bridge_init();
   }
@@ -25,8 +24,9 @@ class LuaBridge {
     this.lua_bridge_free(this.state);
   }
 
-  dostring(str: string): void {
-    this.lua_bridge_dostring(this.state, str);
+  dostring(str: string): ErrorCode {
+    const result = this.lua_bridge_dostring(this.state, str);
+    return result;
   }
 
   static async create(): Promise<LuaBridge> {
@@ -40,7 +40,10 @@ export async function runTest() {
   const bridge = await LuaBridge.create();
   Util.enterToButton($("#lua-code"), $("#submit"));
   $("#submit").click(() => {
-    bridge.dostring($("#lua-code").val() as string);
+    const result = bridge.dostring($("#lua-code").val() as string);
+    if (result != ErrorCode.LUA_OK) {
+      console.error(ErrorCode[result]);
+    }
   });
 }
 

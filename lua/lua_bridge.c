@@ -18,6 +18,10 @@ void EMSCRIPTEN_KEEPALIVE lua_bridge_free(lua_State* L) {
   lua_close(L);
 }
 
-void EMSCRIPTEN_KEEPALIVE lua_bridge_dostring(lua_State* L, const char* string) {
-  luaL_loadstring(L, string) || lua_pcall(L, 0, 0, 0);
+int EMSCRIPTEN_KEEPALIVE lua_bridge_dostring(lua_State* L, const char* string) {
+  int result = luaL_loadstring(L, string);
+  if (result) {
+    return result;
+  }
+  return lua_pcall(L, 0, 0, 0);
 }
