@@ -36,13 +36,13 @@ class LuaBridge {
   }
 
   static async create(): Promise<LuaBridge> {
-    let emModule = await LModule();
+    const emModule = await LModule();
     return new LuaBridge(emModule);
   }
 
 }
 
-export async function runTest() {
+export async function runTest(): void {
   const bridge = await LuaBridge.create();
   Util.enterToButton($("#lua-code"), $("#submit"));
   $("#submit").click(() => {
