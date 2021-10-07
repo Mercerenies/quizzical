@@ -21,6 +21,7 @@ task :lua do
     sh 'cp', mjs_file, js_file
   end
   sh 'cp', *Dir.glob("./lua/*.wasm"), "./public/"
+  sh 'cp', *Dir.glob("./lua/*.data"), "./public/"
 end
 
 desc "Run the webserver"

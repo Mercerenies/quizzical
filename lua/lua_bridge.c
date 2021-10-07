@@ -25,3 +25,12 @@ int EMSCRIPTEN_KEEPALIVE lua_bridge_dostring(lua_State* L, const char* string) {
   }
   return lua_pcall(L, 0, 0, 0);
 }
+
+// DEBUG CODE
+int EMSCRIPTEN_KEEPALIVE lua_bridge_run_example_file(lua_State* L) {
+  int result = luaL_loadfile(L, "/scripting/example.lua");
+  if (result) {
+    return result;
+  }
+  return lua_pcall(L, 0, 0, 0);
+}
