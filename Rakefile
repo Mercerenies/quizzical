@@ -8,8 +8,12 @@ desc "Build the code"
 task build: %w[tsc lua]
 
 desc "Build the Typescript client code"
-task :tsc do
+task tsc: %w[ts/lua/methods.ts] do
   sh 'tsc'
+end
+
+file "ts/lua/methods.ts" => "lua/lua_bridge.c" do
+  sh 'raku ./tools/LuaMethods.raku ./lua/lua_bridge.c >./ts/lua/methods.ts'
 end
 
 desc "Build the Lua runner"
