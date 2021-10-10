@@ -7,6 +7,7 @@
 
 import LModule from '../lua_bridge.js';
 import { pointer, ErrorCode } from './constants.js';
+import { Methods, initMethods } from './methods.js';
 
 /**
  * LuaBridge is the thinnest wrapper class this API makes available to
@@ -15,10 +16,7 @@ import { pointer, ErrorCode } from './constants.js';
  */
 export class LuaBridge {
   private emModule: LModule.LuaBridgeModule;
-  private lua_bridge_init: () => pointer;
-  private lua_bridge_free: (state: pointer) => void;
-  private lua_bridge_dostring: (state: pointer, input: string) => number;
-  private lua_bridge_run_example_file: (state: pointer) => number;
+  private methods: Methods;
   private state: pointer;
 
   /**
@@ -28,13 +26,8 @@ export class LuaBridge {
    */
   constructor(emModule: LModule.LuaBridgeModule) {
     this.emModule = emModule;
-
-    this.lua_bridge_init = this.emModule.cwrap('lua_bridge_init', 'number', []);
-    this.lua_bridge_free = this.emModule.cwrap('lua_bridge_free', null, ['number']);
-    this.lua_bridge_dostring = this.emModule.cwrap('lua_bridge_dostring', 'number', ['number', 'string']);
-    this.lua_bridge_run_example_file = this.emModule.cwrap('lua_bridge_run_example_file', 'number', ['number']);
-
-    this.state = this.lua_bridge_init();
+    this.methods = initMethods(this.emModule);
+    this.state = this.methods.lua_bridge_init();
   }
 
   /**
@@ -42,16 +35,16 @@ export class LuaBridge {
    * should be called on this object after this one.
    */
   free(): void {
-    this.lua_bridge_free(this.state);
+    this.methods.lua_bridge_free(this.state);
   }
 
   doString(str: string): ErrorCode {
-    return this.lua_bridge_dostring(this.state, str);
+    return this.methods.lua_bridge_dostring(this.state, str);
   }
 
   // DEBUG CODE
   runSampleFile(): ErrorCode {
-    return this.lua_bridge_run_example_file(this.state);
+    return this.methods.lua_bridge_run_example_file(this.state);
   }
 
   static async create(): Promise<LuaBridge> {
