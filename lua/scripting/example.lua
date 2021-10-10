@@ -6,8 +6,10 @@ local function init()
 end
 
 local function generate(state)
-  return {FreeformQuestion, "Text", "number", "answer"}
-  -- return {MultichoiceQuestion, "Text", "option1", "option2", "option3", "option4", "answer"}
+  return {
+    type="FreeformQuestion",
+    args={"Text", "number", "answer"},
+  }
 end
 
 -- return {
