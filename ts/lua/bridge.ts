@@ -6,14 +6,9 @@
  */
 
 import LModule from '../lua_bridge.js';
-import { pointer, ErrorCode } from './constants.js';
+import { pointer, NULL, ErrorCode } from './constants.js';
 import { Methods, initMethods } from './methods.js';
 
-/**
- * LuaBridge is the thinnest wrapper class this API makes available to
- * access the C code which interfaces with Lua, short of interfacing
- * directly with Emscripten.
- */
 export class LuaBridge {
   private emModule: LModule.LuaBridgeModule;
   private methods: Methods;
@@ -28,6 +23,15 @@ export class LuaBridge {
     this.emModule = emModule;
     this.methods = initMethods(this.emModule);
     this.state = this.methods.lua_bridge_init();
+
+    // Run the stdlib
+    const stdlibResult = this.methods.lua_bridge_dofile(this.state, "/scripting/quizlib.lua");
+    if (stdlibResult != ErrorCode.LUA_OK) {
+      const errorObject = this.methods.lua_bridge_tostring(this.state, -1);
+      this.methods.lua_bridge_pop(this.state, 1);
+      throw errorObject;
+    }
+
   }
 
   /**
