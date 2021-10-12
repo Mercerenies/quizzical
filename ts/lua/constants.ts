@@ -1,6 +1,8 @@
 
 export type pointer = number;
 
+export const NULL = 0;
+
 // These constants are borrowed from lua.h.
 
 export enum ErrorCode {
