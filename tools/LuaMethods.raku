@@ -74,7 +74,7 @@ grammar MethodParser {
     }
 
     rule function-header {
-        <type> <modifier> <name> '(' [ <argument> * % ',' ] ')' '{'
+        [ <type> <modifier> | <modifier> <type> ] <name> '(' [ <argument> * % ',' ] ')' '{'
     }
 
     rule type {
