@@ -27,11 +27,15 @@ export class LuaBridge {
     // Run the stdlib
     const stdlibResult = this.methods.lua_bridge_dofile(this.state, "/scripting/quizlib.lua");
     if (stdlibResult != ErrorCode.LUA_OK) {
-      const errorObject = this.methods.lua_bridge_tostring(this.state, -1);
-      this.methods.lua_bridge_pop(this.state, 1);
-      throw errorObject;
+      this.getAndThrowError();
     }
 
+  }
+
+  private getAndThrowError(): never {
+    const errorObject = this.methods.lua_bridge_tostring(this.state, -1);
+    this.methods.lua_bridge_pop(this.state, 1);
+    throw errorObject;
   }
 
   /**
@@ -42,8 +46,11 @@ export class LuaBridge {
     this.methods.lua_bridge_free(this.state);
   }
 
-  doString(str: string): ErrorCode {
-    return this.methods.lua_bridge_dostring(this.state, str);
+  doString(str: string): void {
+    const result = this.methods.lua_bridge_dostring(this.state, str);
+    if (result != ErrorCode.LUA_OK) {
+      this.getAndThrowError();
+    }
   }
 
   // DEBUG CODE

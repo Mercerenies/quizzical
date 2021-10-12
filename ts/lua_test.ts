@@ -8,10 +8,7 @@ export async function runTest(): Promise<void> {
   const bridge = await LuaBridge.create();
   Util.enterToButton($("#lua-code"), $("#submit"));
   $("#submit").click(() => {
-    const result = bridge.doString($("#lua-code").val() as string);
-    if (result != ErrorCode.LUA_OK) {
-      console.error(ErrorCode[result]);
-    }
+    bridge.doString($("#lua-code").val() as string);
   });
   $("#example-file-run").click(() => {
     console.log(bridge.runSampleFile());
