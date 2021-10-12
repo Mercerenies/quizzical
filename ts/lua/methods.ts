@@ -12,7 +12,6 @@ export interface Methods {
   lua_bridge_free: (L: pointer) => void;
   lua_bridge_dostring: (L: pointer, string: string) => number;
   lua_bridge_dofile: (L: pointer, filename: string) => number;
-  lua_bridge_run_example_file: (L: pointer) => number;
 }
 
 export function initMethods(emModule: LModule.LuaBridgeModule): Methods {
@@ -23,7 +22,6 @@ export function initMethods(emModule: LModule.LuaBridgeModule): Methods {
     lua_bridge_free: emModule.cwrap("lua_bridge_free", null, ["number"]),
     lua_bridge_dostring: emModule.cwrap("lua_bridge_dostring", "number", ["number", "string"]),
     lua_bridge_dofile: emModule.cwrap("lua_bridge_dofile", "number", ["number", "string"]),
-    lua_bridge_run_example_file: emModule.cwrap("lua_bridge_run_example_file", "number", ["number"]),
   }
 }
 

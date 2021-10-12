@@ -11,7 +11,7 @@ export async function runTest(): Promise<void> {
     bridge.doString($("#lua-code").val() as string);
   });
   $("#example-file-run").click(() => {
-    console.log(bridge.runSampleFile());
+    console.log(bridge.doFile("/scripting/example.lua")); // DEBUG CODE
   });
 }
 

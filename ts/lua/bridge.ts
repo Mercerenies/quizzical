@@ -24,11 +24,7 @@ export class LuaBridge {
     this.methods = initMethods(this.emModule);
     this.state = this.methods.lua_bridge_init();
 
-    // Run the stdlib
-    const stdlibResult = this.methods.lua_bridge_dofile(this.state, "/scripting/quizlib.lua");
-    if (stdlibResult != ErrorCode.LUA_OK) {
-      this.getAndThrowError();
-    }
+    this.doFile(LUA_QUIZLIB_FILENAME);
 
   }
 
@@ -53,9 +49,11 @@ export class LuaBridge {
     }
   }
 
-  // DEBUG CODE
-  runSampleFile(): ErrorCode {
-    return this.methods.lua_bridge_run_example_file(this.state);
+  doFile(filename: string): void {
+    const result = this.methods.lua_bridge_dofile(this.state, filename);
+    if (result != ErrorCode.LUA_OK) {
+      this.getAndThrowError();
+    }
   }
 
   static async create(): Promise<LuaBridge> {
@@ -64,3 +62,5 @@ export class LuaBridge {
   }
 
 }
+
+export const LUA_QUIZLIB_FILENAME = "/scripting/quizlib.lua";

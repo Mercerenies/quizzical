@@ -55,14 +55,3 @@ int lua_bridge_dofile(lua_State* L, const char* filename) { // [-0, +0/1, m]
   }
   return lua_pcall(L, 0, 0, 0);
 }
-
-// DEBUG CODE
-EMSCRIPTEN_KEEPALIVE
-int lua_bridge_run_example_file(lua_State* L) { // [-0, +0/1, m]
-  // Pushes error object in case of error
-  int result = luaL_loadfile(L, "/scripting/example.lua");
-  if (result) {
-    return result;
-  }
-  return lua_pcall(L, 0, 0, 0);
-}
