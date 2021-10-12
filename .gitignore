@@ -11,3 +11,4 @@ docs/
 lua/lua-5.4.0/lua
 lua/**/*.js
 lua/**/*.mjs
+*.data
