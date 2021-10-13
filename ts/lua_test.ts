@@ -10,8 +10,13 @@ export async function runTest(): Promise<void> {
   $("#submit").click(() => {
     bridge.doString($("#lua-code").val() as string);
   });
+
+  // DEBUG CODE
   $("#example-file-run").click(() => {
-    console.log(bridge.doFile("/scripting/example.lua")); // DEBUG CODE
+    bridge.doFile("/scripting/example.lua", 1);
+    console.log(bridge.toString(-1));
+    bridge.pop();
   });
+
 }
 

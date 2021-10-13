@@ -37,21 +37,27 @@ void lua_bridge_free(lua_State* L) { // [-0, +0, -]
 }
 
 EMSCRIPTEN_KEEPALIVE
-int lua_bridge_dostring(lua_State* L, const char* string) { // [-0, +0/1, -]
+int lua_bridge_dostring(lua_State* L, const char* string, int nresults) { // [-0, +nresults|1, -]
   // Pushes error object in case of error
   int result = luaL_loadstring(L, string);
   if (result) {
     return result;
   }
-  return lua_pcall(L, 0, 0, 0);
+  return lua_pcall(L, 0, nresults, 0);
 }
 
 EMSCRIPTEN_KEEPALIVE
-int lua_bridge_dofile(lua_State* L, const char* filename) { // [-0, +0/1, m]
+int lua_bridge_dofile(lua_State* L, const char* filename, int nresults) { // [-0, +nresults|1, m]
   // Pushes error object in case of error
   int result = luaL_loadfile(L, filename);
   if (result) {
     return result;
   }
-  return lua_pcall(L, 0, 0, 0);
+  return lua_pcall(L, 0, nresults, 0);
+}
+
+EMSCRIPTEN_KEEPALIVE
+int lua_bridge_getfield(lua_State* L, int index, const char* k) { // [-0, +1, e]
+  // Returns the type of the returned field
+  return lua_getfield(L, index, k);
 }

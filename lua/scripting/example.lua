@@ -18,4 +18,4 @@ end
 --   state=state,
 -- }
 
-print(100)
+return 100

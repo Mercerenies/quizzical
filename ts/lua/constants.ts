@@ -2,6 +2,7 @@
 export type pointer = number;
 
 export const NULL = 0;
+export const LUA_MULTRET = -1;
 
 // These constants are borrowed from lua.h.
 

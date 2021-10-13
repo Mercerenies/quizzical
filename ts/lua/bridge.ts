@@ -29,8 +29,8 @@ export class LuaBridge {
   }
 
   private getAndThrowError(): never {
-    const errorObject = this.methods.lua_bridge_tostring(this.state, -1);
-    this.methods.lua_bridge_pop(this.state, 1);
+    const errorObject = this.toString(-1);
+    this.pop(1);
     throw errorObject;
   }
 
@@ -42,18 +42,26 @@ export class LuaBridge {
     this.methods.lua_bridge_free(this.state);
   }
 
-  doString(str: string): void {
-    const result = this.methods.lua_bridge_dostring(this.state, str);
+  toString(index: number): string { // [-0, +0]
+    return this.methods.lua_bridge_tostring(this.state, index);
+  }
+
+  doString(str: string, nresults?: number): void { // [-0, +nresults]
+    const result = this.methods.lua_bridge_dostring(this.state, str, nresults ?? 0);
     if (result != ErrorCode.LUA_OK) {
       this.getAndThrowError();
     }
   }
 
-  doFile(filename: string): void {
-    const result = this.methods.lua_bridge_dofile(this.state, filename);
+  doFile(filename: string, nresults?: number): void { // [-0, +nresults]
+    const result = this.methods.lua_bridge_dofile(this.state, filename, nresults ?? 0);
     if (result != ErrorCode.LUA_OK) {
       this.getAndThrowError();
     }
+  }
+
+  pop(n?: number): void { // [-n, +0]
+    this.methods.lua_bridge_pop(this.state, n ?? 1);
   }
 
   static async create(): Promise<LuaBridge> {
