@@ -3,7 +3,7 @@
 // should not be modified by hand!
 
 import LModule from '../lua_bridge.js';
-import { pointer, ErrorCode } from './constants.js';
+import { pointer } from './constants.js';
 
 export interface Methods {
   lua_bridge_init: () => pointer;
@@ -24,6 +24,6 @@ export function initMethods(emModule: LModule.LuaBridgeModule): Methods {
     lua_bridge_dostring: emModule.cwrap("lua_bridge_dostring", "number", ["number", "string", "number"]),
     lua_bridge_dofile: emModule.cwrap("lua_bridge_dofile", "number", ["number", "string", "number"]),
     lua_bridge_getfield: emModule.cwrap("lua_bridge_getfield", "number", ["number", "number", "string"]),
-  }
+  };
 }
 

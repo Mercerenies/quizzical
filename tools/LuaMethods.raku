@@ -131,7 +131,7 @@ say qq:to/END/;
 // should not be modified by hand!
 
 import LModule from '../lua_bridge.js';
-import \{ pointer, ErrorCode \} from './constants.js';
+import \{ pointer \} from './constants.js';
 
 export interface Methods \{
 {@result.map(*.interface-line).join("\n")}
@@ -140,6 +140,6 @@ export interface Methods \{
 export function initMethods(emModule: LModule.LuaBridgeModule): Methods \{
   return \{
 {@result.map(*.cwrap-line).join("\n")}
-  \}
+  \};
 \}
 END

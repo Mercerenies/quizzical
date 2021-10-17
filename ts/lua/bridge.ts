@@ -6,7 +6,7 @@
  */
 
 import LModule from '../lua_bridge.js';
-import { pointer, NULL, ErrorCode } from './constants.js';
+import { pointer, ErrorCode } from './constants.js';
 import { Methods, initMethods } from './methods.js';
 
 export class LuaBridge {
