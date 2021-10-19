@@ -35,6 +35,15 @@ export class LuaBridge {
   }
 
   /**
+   * Gets a unique numerical value, useful for indexing into tables in
+   * a unique position. Before using this as a table key, it is
+   * recommended to convert it to light userdata.
+   */
+  getUserdataPtr(): pointer {
+    return this.methods.lua_bridge_userdata_ptr();
+  }
+
+  /**
    * Free the LuaBridge and all associated resources. No other methods
    * should be called on this object after this one.
    */
@@ -58,6 +67,11 @@ export class LuaBridge {
     if (result != ErrorCode.LUA_OK) {
       this.getAndThrowError();
     }
+  }
+
+  getField(index: number, key: string): number { // [-0, +1, e]
+    // TODO This returns a type. That should be an enum
+    return this.methods.lua_bridge_getfield(this.state, index, key);
   }
 
   pop(n?: number): void { // [-n, +0]
