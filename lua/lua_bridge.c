@@ -9,6 +9,16 @@
 // standard library docs. See
 // https://www.lua.org/manual/5.4/manual.html#4.6 for more details.
 
+const char* USERDATA_PTR = "This pointer is used by lua_bridge.c as light userdata to "
+                           "index into the Lua registry.";
+
+EMSCRIPTEN_KEEPALIVE
+void* lua_bridge_userdata_ptr() {
+  // Returns a pointer unique to this program, useful for indexing
+  // into the Lua registry.
+  return (void*)USERDATA_PTR;
+}
+
 EMSCRIPTEN_KEEPALIVE
 lua_State* lua_bridge_init() { // [-0, +0, -]
   lua_State* L = luaL_newstate();
@@ -60,4 +70,9 @@ EMSCRIPTEN_KEEPALIVE
 int lua_bridge_getfield(lua_State* L, int index, const char* k) { // [-0, +1, e]
   // Returns the type of the returned field
   return lua_getfield(L, index, k);
+}
+
+EMSCRIPTEN_KEEPALIVE
+void lua_bridge_pushlightuserdata(lua_State* L, void* p) { // [-0, +1, -]
+  lua_pushlightuserdata(L, p);
 }
