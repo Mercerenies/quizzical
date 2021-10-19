@@ -33,7 +33,7 @@ lua_State* lua_bridge_init() { // [-0, +0, -]
 
 EMSCRIPTEN_KEEPALIVE
 const char* lua_bridge_tostring(lua_State* L, int index) { // [-0, +0, m]
-  return lua_tostring(L, index);
+  return luaL_tolstring(L, index, NULL);
 }
 
 EMSCRIPTEN_KEEPALIVE
