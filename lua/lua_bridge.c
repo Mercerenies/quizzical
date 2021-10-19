@@ -73,6 +73,41 @@ int lua_bridge_getfield(lua_State* L, int index, const char* k) { // [-0, +1, e]
 }
 
 EMSCRIPTEN_KEEPALIVE
+void lua_bridge_setfield(lua_State* L, int index, const char* k) { // [-1, +0, e]
+  lua_setfield(L, index, k);
+}
+
+EMSCRIPTEN_KEEPALIVE
 void lua_bridge_pushlightuserdata(lua_State* L, void* p) { // [-0, +1, -]
   lua_pushlightuserdata(L, p);
+}
+
+EMSCRIPTEN_KEEPALIVE
+void lua_bridge_newtable(lua_State* L) { // [-0, +1, m]
+  lua_newtable(L);
+}
+
+EMSCRIPTEN_KEEPALIVE
+void lua_bridge_settable(lua_State* L, int index) { // [-2, +0, e]
+  lua_settable(L, index);
+}
+
+EMSCRIPTEN_KEEPALIVE
+int lua_bridge_gettable(lua_State* L, int index) { // [-1, +1, e]
+  return lua_gettable(L, index);
+}
+
+EMSCRIPTEN_KEEPALIVE
+void lua_bridge_call(lua_State* L, int nargs, int nresults) { // [-(nargs+1), +nresults, e]
+  lua_call(L, nargs, nresults);
+}
+
+EMSCRIPTEN_KEEPALIVE
+int lua_bridge_pcall(lua_State* L, int nargs, int nresults) { // [-(nargs+1), +nresults, -]
+  return lua_pcall(L, nargs, nresults, 0);
+}
+
+EMSCRIPTEN_KEEPALIVE
+int lua_bridge_type(lua_State* L, int index) { // [-0, +0, -]
+  return lua_type(L, index);
 }

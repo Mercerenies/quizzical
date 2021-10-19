@@ -6,7 +6,7 @@
  */
 
 import LModule from '../lua_bridge.js';
-import { pointer, ErrorCode, Type } from './constants.js';
+import { pointer, ErrorCode, Type, LUA_REGISTRYINDEX } from './constants.js';
 import { Methods, initMethods } from './methods.js';
 
 export class LuaBridge {
@@ -24,7 +24,13 @@ export class LuaBridge {
     this.methods = initMethods(this.emModule);
     this.state = this.methods.lua_bridge_init();
 
+    // Run quizlib.lua
     this.doFile(LUA_QUIZLIB_FILENAME);
+
+    // Set up registry
+    this.pushLightUserdata(this.getUserdataPtr());
+    this.newTable();
+    this.setTable(LUA_REGISTRYINDEX);
 
   }
 
@@ -55,6 +61,10 @@ export class LuaBridge {
     return this.methods.lua_bridge_tostring(this.state, index);
   }
 
+  pop(n?: number): void { // [-n, +0]
+    this.methods.lua_bridge_pop(this.state, n ?? 1);
+  }
+
   doString(str: string, nresults?: number): void { // [-0, +nresults]
     const result = this.methods.lua_bridge_dostring(this.state, str, nresults ?? 0);
     if (result != ErrorCode.LUA_OK) {
@@ -69,12 +79,43 @@ export class LuaBridge {
     }
   }
 
-  getField(index: number, key: string): Type { // [-0, +1, e]
+  getField(index: number, key: string): Type { // [-0, +1]
     return this.methods.lua_bridge_getfield(this.state, index, key);
   }
 
-  pop(n?: number): void { // [-n, +0]
-    this.methods.lua_bridge_pop(this.state, n ?? 1);
+  setField(index: number, key: string): void { // [-1, +0]
+    return this.methods.lua_bridge_setfield(this.state, index, key);
+  }
+
+  pushLightUserdata(ptr: pointer): void { // [-0, +1]
+    return this.methods.lua_bridge_pushlightuserdata(this.state, ptr);
+  }
+
+  newTable(): void { // [-0, +1]
+    return this.methods.lua_bridge_newtable(this.state);
+  }
+
+  setTable(index: number): void { // [-2, +0]
+    return this.methods.lua_bridge_settable(this.state, index);
+  }
+
+  getTable(index: number): Type { // [-1, +1]
+    return this.methods.lua_bridge_gettable(this.state, index);
+  }
+
+  call(nargs: number, nresults: number): void { // [-(nargs+1), +nresults]
+    return this.methods.lua_bridge_call(this.state, nargs, nresults);
+  }
+
+  pcall(nargs: number, nresults: number): void { // [-(nargs+1), +nresults]
+    const result = this.methods.lua_bridge_pcall(this.state, nargs, nresults);
+    if (result != ErrorCode.LUA_OK) {
+      this.getAndThrowError();
+    }
+  }
+
+  getType(index: number): Type { // [-0, +0]
+    return this.methods.lua_bridge_type(this.state, index);
   }
 
   static async create(): Promise<LuaBridge> {
