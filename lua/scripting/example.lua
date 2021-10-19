@@ -1,21 +1,17 @@
 
-print("A")
-
 local function init()
   return {}
 end
 
 local function generate(state)
-  return {
-    type="FreeformQuestion",
-    args={"Text", "number", "answer"},
+  return FreeformQuestion{
+    text="Question text",
+    response_type="text",
+    answer="answer",
   }
 end
 
--- return {
---   quizzical=true,
---   init=init,
---   state=state,
--- }
-
-return 100
+return {
+  init=init,
+  generate=generate,
+}
