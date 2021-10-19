@@ -6,7 +6,7 @@
  */
 
 import LModule from '../lua_bridge.js';
-import { pointer, ErrorCode } from './constants.js';
+import { pointer, ErrorCode, Type } from './constants.js';
 import { Methods, initMethods } from './methods.js';
 
 export class LuaBridge {
@@ -69,8 +69,7 @@ export class LuaBridge {
     }
   }
 
-  getField(index: number, key: string): number { // [-0, +1, e]
-    // TODO This returns a type. That should be an enum
+  getField(index: number, key: string): Type { // [-0, +1, e]
     return this.methods.lua_bridge_getfield(this.state, index, key);
   }
 
