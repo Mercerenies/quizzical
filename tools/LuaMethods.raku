@@ -45,6 +45,7 @@ sub type-to-ts(Str $type --> Str) {
         when "double" { "number" }
         when "char*" { "string" }
         when "const char*" { "string" }
+        when "void*" { "pointer" }
         when "lua_State*" { "pointer" }
         when "void" { "void" }
         default { die("Unknown type $type") }
@@ -57,6 +58,7 @@ sub type-to-cwrap(Str $type --> Str) {
         when "double" { '"number"' }
         when "char*" { '"string"' }
         when "const char*" { '"string"' }
+        when "void*" { '"number"' }
         when "lua_State*" { '"number"' }
         when "void" { 'null' }
         default { die("Unknown type $type") }
