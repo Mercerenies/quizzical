@@ -57,7 +57,7 @@ export class LuaBridge {
    * Free the LuaBridge and all associated resources. No other methods
    * should be called on this object after this one.
    */
-  free(): void {
+  close(): void {
     this.methods.lua_bridge_free(this.state);
   }
 
