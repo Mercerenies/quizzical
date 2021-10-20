@@ -32,7 +32,7 @@ lua_State* lua_bridge_init() { // [-0, +0, -]
 }
 
 EMSCRIPTEN_KEEPALIVE
-const char* lua_bridge_tostring(lua_State* L, int index) { // [-0, +0, m]
+const char* lua_bridge_tostring(lua_State* L, int index) { // [-0, +1, e]
   return luaL_tolstring(L, index, NULL);
 }
 
@@ -125,4 +125,9 @@ void lua_bridge_settop(lua_State* L, int index) { // [-?, +?, e]
 EMSCRIPTEN_KEEPALIVE
 void lua_bridge_pushnil(lua_State* L) { // [-0, +1, -]
   lua_pushnil(L);
+}
+
+EMSCRIPTEN_KEEPALIVE
+const char* lua_bridge_tostring_prim(lua_State* L, int index) { // [-0, +0, m]
+  return lua_tolstring(L, index, NULL);
 }

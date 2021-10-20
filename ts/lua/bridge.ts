@@ -36,7 +36,7 @@ export class LuaBridge {
 
   private getAndThrowError(): never {
     const errorObject = this.toString(-1);
-    this.pop(1);
+    this.pop(2);
     throw errorObject;
   }
 
@@ -73,7 +73,7 @@ export class LuaBridge {
     this.methods.lua_bridge_free(this.state);
   }
 
-  toString(index: number): string { // [-0, +0]
+  toString(index: number): string { // [-0, +1]
     return this.methods.lua_bridge_tostring(this.state, index);
   }
 
@@ -144,6 +144,14 @@ export class LuaBridge {
 
   pushNil(): void { // [-0, +1]
     return this.methods.lua_bridge_pushnil(this.state);
+  }
+
+  /**
+   * As toString() but fails on values which are not strings or
+   * numbers.
+   */
+  toStringPrim(index: number): string { // [-0, +0]
+    return this.methods.lua_bridge_tostring(this.state, index);
   }
 
   ///////////////////
