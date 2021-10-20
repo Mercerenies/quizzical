@@ -40,9 +40,21 @@ export class LuaBridge {
     throw errorObject;
   }
 
-  /////////////////////////////////
-  // WRAPPERS AROUND C FUNCTIONS //
-  /////////////////////////////////
+  ////////////////////////////////////
+  // WRAPPERS AROUND LIBC FUNCTIONS //
+  ////////////////////////////////////
+
+  malloc(size: number): pointer {
+    return this.emModule._malloc(size);
+  }
+
+  free(memory: pointer): void {
+    this.emModule._free(memory);
+  }
+
+  ////////////////////////////////////////
+  // WRAPPERS AROUND C BRIDGE FUNCTIONS //
+  ////////////////////////////////////////
 
   /**
    * Gets a unique numerical value, useful for indexing into tables in
