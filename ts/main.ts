@@ -41,6 +41,7 @@ export function setupNewGame(): void {
 
 // DEBUG CODE
 const DebugGenerator: QuestionGenerator = {
+
   generate(): Question {
     switch (Math.floor(Math.random() * 3)) {
     case 0: {
@@ -63,5 +64,10 @@ const DebugGenerator: QuestionGenerator = {
     }
     }
     throw "Unreachable?";
-  }
+  },
+
+  close(): void {
+    // No action :)
+  },
+
 };
