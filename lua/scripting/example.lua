@@ -1,7 +1,7 @@
 
 local function init()
   print("init() completed")
-  return {}
+  return setmetatable({}, { __name="init_state" })
 end
 
 local function generate(state)
