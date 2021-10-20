@@ -10,11 +10,13 @@ import { RCID } from '../uuid.js';
 import { GuestLobby } from '../lobby.js';
 import * as Util from '../util.js';
 
+export type InputType = "number" | "text";
+
 export class FreeformQuestion extends Question {
   readonly questionText: string;
-  readonly answerType: "number" | "text"; // TODO Make this a named type
+  readonly answerType: InputType;
 
-  constructor(questionText: string, answerType: "number" | "text", answer: Answer) {
+  constructor(questionText: string, answerType: InputType, answer: Answer) {
     super(answer);
     this.questionText = questionText;
     this.answerType = answerType;
@@ -45,7 +47,7 @@ export class FreeformQuestionDisplayable extends HTTPGetDisplayable {
 
 }
 
-export function freeformPage(questionText: string, answerType: "number" | "text"): RemoteControlMessageBuilder<RemoteControlFreeformMessage> {
+export function freeformPage(questionText: string, answerType: InputType): RemoteControlMessageBuilder<RemoteControlFreeformMessage> {
   return (rcid: RCID) => ({
     rcType: "freeform",
     rcId: rcid,
@@ -119,6 +121,6 @@ export interface RemoteControlFreeformMessage extends RemoteControlMessage {
   rcType: "freeform";
   rcParams: {
     questionText: string,
-    answerType: "number" | "text",
+    answerType: InputType,
   };
 }
