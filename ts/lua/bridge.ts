@@ -40,6 +40,10 @@ export class LuaBridge {
     throw errorObject;
   }
 
+  /////////////////////////////////
+  // WRAPPERS AROUND C FUNCTIONS //
+  /////////////////////////////////
+
   /**
    * Gets a unique numerical value, useful for indexing into tables in
    * a unique position. Before using this as a table key, it is
@@ -116,6 +120,58 @@ export class LuaBridge {
 
   getType(index: number): Type { // [-0, +0]
     return this.methods.lua_bridge_type(this.state, index);
+  }
+
+  getTop(): number { // [-0, +0]
+    return this.methods.lua_bridge_gettop(this.state);
+  }
+
+  setTop(index: number): void { // [-?, +?]
+    return this.methods.lua_bridge_settop(this.state, index);
+  }
+
+  ///////////////////
+  // OTHER HELPERS //
+  ///////////////////
+
+  /**
+   * preserveStackSize() runs a block of code, ensuring that the size
+   * of the Lua stack remains the same before and after the block. If
+   * it does not, then a warning is printed and the stack size is
+   * adjusted, either popping values or padding with nil.
+   *
+   * preserveStackSize() can be called with one or two arguments. If
+   * called with one, it must be the block to run: a 0-ary function.
+   * If called with two, then the first argument is a Boolean
+   * specifying whether to print a warning on failure and the second
+   * is the block.
+   */
+  preserveStackSize<T>(
+    ...args: [block: () => T] | [shouldWarn: boolean, block: () => T]
+  ): T {
+    let shouldWarn: boolean;
+    let block: () => T;
+    if (args.length === 2) {
+      shouldWarn = args[0];
+      block = args[1];
+    } else {
+      shouldWarn = true;
+      block = args[0];
+    }
+    const stackSize = this.getTop();
+    let result: T;
+    try {
+      result = block();
+    } finally {
+      if (this.getTop() != stackSize) {
+        // Reset the stack size
+        if (shouldWarn) {
+          console.warn(`preserveStackSize() expected a stack size of ${stackSize}, got ${this.getTop()}!`);
+        }
+        this.setTop(stackSize);
+      }
+    }
+    return result;
   }
 
   static async create(): Promise<LuaBridge> {

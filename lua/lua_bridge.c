@@ -111,3 +111,13 @@ EMSCRIPTEN_KEEPALIVE
 int lua_bridge_type(lua_State* L, int index) { // [-0, +0, -]
   return lua_type(L, index);
 }
+
+EMSCRIPTEN_KEEPALIVE
+int lua_bridge_gettop(lua_State* L) { // [-0, +0, -]
+  return lua_gettop(L);
+}
+
+EMSCRIPTEN_KEEPALIVE
+void lua_bridge_settop(lua_State* L, int index) { // [-?, +?, e]
+  lua_settop(L, index);
+}
