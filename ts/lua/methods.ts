@@ -24,6 +24,7 @@ export interface Methods {
   lua_bridge_type: (L: pointer, index: number) => number;
   lua_bridge_gettop: (L: pointer) => number;
   lua_bridge_settop: (L: pointer, index: number) => void;
+  lua_bridge_pushnil: (L: pointer) => void;
 }
 
 export function initMethods(emModule: LModule.LuaBridgeModule): Methods {
@@ -46,6 +47,7 @@ export function initMethods(emModule: LModule.LuaBridgeModule): Methods {
     lua_bridge_type: emModule.cwrap("lua_bridge_type", "number", ["number", "number"]),
     lua_bridge_gettop: emModule.cwrap("lua_bridge_gettop", "number", ["number"]),
     lua_bridge_settop: emModule.cwrap("lua_bridge_settop", null, ["number", "number"]),
+    lua_bridge_pushnil: emModule.cwrap("lua_bridge_pushnil", null, ["number"]),
   };
 }
 

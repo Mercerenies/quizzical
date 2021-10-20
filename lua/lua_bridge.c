@@ -121,3 +121,8 @@ EMSCRIPTEN_KEEPALIVE
 void lua_bridge_settop(lua_State* L, int index) { // [-?, +?, e]
   lua_settop(L, index);
 }
+
+EMSCRIPTEN_KEEPALIVE
+void lua_bridge_pushnil(lua_State* L) { // [-0, +1, -]
+  lua_pushnil(L);
+}

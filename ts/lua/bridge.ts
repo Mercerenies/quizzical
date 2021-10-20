@@ -130,6 +130,10 @@ export class LuaBridge {
     return this.methods.lua_bridge_settop(this.state, index);
   }
 
+  pushNil(): void { // [-0, +1]
+    return this.methods.lua_bridge_pushnil(this.state);
+  }
+
   ///////////////////
   // OTHER HELPERS //
   ///////////////////
