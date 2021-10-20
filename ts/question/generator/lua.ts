@@ -46,7 +46,7 @@ export class LuaGenerator extends QuestionGenerator {
       bridge.getField(ebp + 2, generator_object);
       bridge.getField(-1, "init");
       bridge.pcall(0, 1);
-      bridge.setField(ebp + 1, init_state);
+      bridge.setField(ebp + 2, init_state);
 
       bridge.pop(3);
 
