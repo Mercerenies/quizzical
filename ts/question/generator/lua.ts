@@ -8,6 +8,8 @@
 import { LuaBridge } from '../../lua/bridge.js';
 import { LuaSource } from '../../lua/source.js';
 import { pointer } from '../../lua/constants.js';
+import { QuestionFactoryDispatcher } from '../../question/factory.js';
+import { DefaultFactoryDispatcher } from '../../question/factory/default_dispatcher.js';
 import { Question } from '../../question.js';
 import { FreeformQuestion } from '../freeform_question.js';
 import { ExactAnswer } from '../answer.js';
@@ -24,10 +26,13 @@ const init_state = "init_state";
 export class LuaGenerator extends QuestionGenerator {
   private bridge: LuaBridge;
   private registryIndex: pointer;
+  private dispatcher: QuestionFactoryDispatcher<Question>;
 
-  constructor(bridge: LuaBridge, source: LuaSource) {
+  constructor(bridge: LuaBridge, source: LuaSource, dispatcher?: QuestionFactoryDispatcher<Question>) {
     super();
     this.bridge = bridge;
+
+    this.dispatcher = dispatcher ?? new DefaultFactoryDispatcher();
 
     // Allocate some memory for use as light userdata.
     this.registryIndex = bridge.malloc(1);
@@ -70,7 +75,7 @@ export class LuaGenerator extends QuestionGenerator {
   }
 
   generate(): Question {
-    this.bridge.preserveStackSize(() => {
+    return this.bridge.preserveStackSize(() => {
       const ebp = this.bridge.getTop();
 
       this.getLocalData();
@@ -80,11 +85,11 @@ export class LuaGenerator extends QuestionGenerator {
       this.bridge.getField(ebp + 2, init_state);
       this.bridge.pcall(1, 1);
 
-      this.bridge.pop(4); // Should be 3
-    });
+      const result = this.dispatcher.create(this.bridge);
 
-    // Not done yet :(
-    return new FreeformQuestion("Test", "text", new ExactAnswer("Answer"));
+      this.bridge.pop(4);
+      return result;
+    });
   }
 
   close(): void {

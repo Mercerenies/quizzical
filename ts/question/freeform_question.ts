@@ -3,7 +3,9 @@ import { RemoteControlMessage } from '../remote_control.js';
 import { RemoteControlDisplay } from '../remote_control/display.js';
 import { RCPageGenerator, RemoteControlMessageBuilder } from '../remote_control/page_generator.js';
 import { Question, QuestionResponse, QUESTION_RESPONSE_MESSAGE_TYPE } from '../question.js';
-import { Answer } from './answer.js';
+import { QuestionFactory } from './factory.js';
+import { LuaBridge } from '../lua/bridge.js';
+import { Answer, ExactAnswer } from './answer.js';
 import { Displayable, HTTPGetDisplayable } from '../displayable.js';
 import { render } from '../renderer.js';
 import { RCID } from '../uuid.js';
@@ -28,6 +30,15 @@ export class FreeformQuestion extends Question {
 
   makeRCMessage(): RemoteControlMessage {
     return RCPageGenerator.get().createPage(freeformPage(this.questionText, this.answerType));
+  }
+
+}
+
+export class FreeformQuestionFactory implements QuestionFactory<FreeformQuestion> {
+  readonly name: string = "FreeformQuestion";
+
+  create(bridge: LuaBridge): FreeformQuestion {
+    return new FreeformQuestion("Example question", "text", new ExactAnswer("Example answer")); /////
   }
 
 }

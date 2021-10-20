@@ -151,7 +151,7 @@ export class LuaBridge {
    * numbers.
    */
   toStringPrim(index: number): string { // [-0, +0]
-    return this.methods.lua_bridge_tostring(this.state, index);
+    return this.methods.lua_bridge_tostring_prim(this.state, index);
   }
 
   ///////////////////
