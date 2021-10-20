@@ -12,7 +12,7 @@ import { LuaBridge } from './bridge.js';
  * 1. The code completed successfully. nresults results were pushed.
  *
  * 2. The code failed. In this case, a Javascript exception should be
- * raised. A single error object should be pushed onto the stack.
+ * raised and the stack should be left as it was found.
  */
 export interface LuaSource {
   run(bridge: LuaBridge, nresults: number): void;
