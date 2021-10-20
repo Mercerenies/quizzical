@@ -190,6 +190,11 @@ export class LuaBridge {
     return result;
   }
 
+  getLocalRegistry(): void { // [-0, +1]
+    this.pushLightUserdata(this.getUserdataPtr());
+    this.getTable(LUA_REGISTRYINDEX);
+  }
+
   static async create(): Promise<LuaBridge> {
     const emModule = await LModule();
     return new LuaBridge(emModule);
